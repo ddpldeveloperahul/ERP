@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DR. DESIGN PVT. LTD. - ERP Portal Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body, html {
+      height: 100%;
+      width: 100%;
+      background-color: #0f1217;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .login-container {
+      display: flex;
+      min-height: 100vh;
+      width: 100%;
+    }
+
+    /* LEFT SECTION (Dark) */
+    .left-section {
+      flex: 1.15;
+      background: radial-gradient(circle at 18% 25%, #181d26 0%, #101319 75%, #0b0e13 100%);
+      padding: 48px 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-logo-box {
+      width: 52px;
+      height: 52px;
+      background: #ffffff;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      padding: 6px;
+    }
+
+    .brand-logo-box svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .brand-text h1 {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: #ffffff;
+      text-transform: uppercase;
+      line-height: 1.3;
+    }
+
+    .brand-text span {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: #718096;
+      text-transform: uppercase;
+    }
+
+    .welcome-content {
+      max-width: 620px;
+      margin: 40px 0;
+    }
+
+    .welcome-title {
+      font-size: 64px;
+      font-weight: 700;
+      letter-spacing: -1.5px;
+      color: #ffffff;
+      margin-bottom: 24px;
+      line-height: 1.1;
+    }
+
+    .role-headline {
+      font-size: 20px;
+      font-weight: 500;
+      color: #f1f5f9;
+      margin-bottom: 14px;
+      transition: all 0.25s ease;
+    }
+
+    .role-description {
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: #94a3b8;
+      margin-bottom: 36px;
+      min-height: 50px;
+      transition: all 0.25s ease;
+    }
+
+    .role-pills-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #64748b;
+      margin-bottom: 14px;
+    }
+
+    .role-pills-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      max-width: 580px;
+    }
+
+    .role-pill {
+      background: #171d27;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #cbd5e1;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+
+    .role-pill:hover {
+      background: #212836;
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .role-pill.active {
+      background: #0ea76e;
+      border-color: #0ea76e;
+      color: #ffffff;
+      box-shadow: 0 4px 18px rgba(14, 167, 110, 0.35);
+    }
+
+    .left-footer {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 30px;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      color: #64748b;
+      text-transform: uppercase;
+    }
+
+    .footer-links a {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: #94a3b8;
+    }
+
+    .footer-copy {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: #475569;
+    }
+
+    /* RIGHT SECTION (Green Gradient) */
+    .right-section {
+      flex: 1;
+      background: linear-gradient(135deg, #059669 0%, #10b981 48%, #047857 100%);
+      padding: 56px 72px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle background accent glow */
+    .right-section::before {
+      content: '';
+      position: absolute;
+      top: -150px;
+      right: -150px;
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .right-section::after {
+      content: '';
+      position: absolute;
+      bottom: -120px;
+      left: -120px;
+      width: 380px;
+      height: 380px;
+      background: radial-gradient(circle, rgba(0, 0, 0, 0.12) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .form-wrapper {
+      max-width: 460px;
+      width: 100%;
+      margin: auto 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .panel-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #ffffff;
+      margin-bottom: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      transition: all 0.25s ease;
+    }
+
+    .login-heading {
+      font-size: 38px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+
+    .login-subheading {
+      font-size: 14.5px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.88);
+      margin-bottom: 38px;
+      transition: all 0.25s ease;
+    }
+
+    .alert-box {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fee2e2;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      margin-bottom: 24px;
+      display: none;
+    }
+
+    .alert-box.show {
+      display: block;
+    }
+
+    .input-group {
+      margin-bottom: 30px;
+      position: relative;
+    }
+
+    .input-label {
+      display: block;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #ffffff;
+      margin-bottom: 8px;
+      letter-spacing: 0.2px;
+    }
+
+    .input-field-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .text-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.35);
+      color: #ffffff;
+      font-size: 16px;
+      padding: 10px 0;
+      outline: none;
+      transition: border-color 0.25s ease;
+    }
+
+    .text-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .text-input:focus {
+      border-bottom-color: #ffffff;
+    }
+
+    .eye-toggle-btn {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.85);
+      cursor: pointer;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+    }
+
+    .eye-toggle-btn:hover {
+      color: #ffffff;
+    }
+
+    .actions-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 36px;
+      margin-bottom: 28px;
+      gap: 16px;
+    }
+
+    .btn-login {
+      background: #ffffff;
+      color: #047857;
+      border: none;
+      padding: 13px 38px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+      transition: all 0.2s ease;
+    }
+
+    .btn-login:hover {
+      background: #f8fafc;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.24);
+    }
+
+    .forgot-link {
+      color: #ffffff;
+      font-size: 13.5px;
+      font-weight: 500;
+      text-decoration: none;
+      opacity: 0.95;
+      transition: opacity 0.2s, text-decoration 0.2s;
+    }
+
+    .forgot-link:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+
+    /* Demo Login helper box */
+    .demo-info-card {
+      background: rgba(0, 0, 0, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(6px);
+      padding: 14px 18px;
+      border-radius: 10px;
+      margin-top: 14px;
+    }
+
+    .demo-info-text {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .demo-cred-pill {
+      font-size: 13px;
+      font-weight: 600;
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: background 0.2s;
+      user-select: none;
+    }
+
+    .demo-cred-pill:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .demo-badge-action {
+      font-size: 11px;
+      background: #ffffff;
+      color: #065f46;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .quick-test-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .btn-quick-test {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-quick-test:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .right-footer-url {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.75);
+      letter-spacing: 0.5px;
+      margin-top: 24px;
+      text-align: right;
+      z-index: 2;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .login-container {
+        flex-direction: column;
+      }
+      .left-section, .right-section {
+        flex: none;
+        width: 100%;
+        padding: 40px 32px;
+      }
+      .welcome-title {
+        font-size: 44px;
+      }
+      .form-wrapper {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    
+    <!-- LEFT PANEL: Dark Overview with Role Selectors -->
+    <div class="left-section">
+      <div>
+        <!-- Top Logo and Company Branding -->
+        <div class="brand-header">
+          <div class="brand-logo-box">
+            <!-- Professional DR. DESIGN Vector Icon -->
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="48" height="48" rx="8" fill="#FFFFFF"/>
+              <!-- Stylized Compass & Globe Architecture -->
+              <circle cx="24" cy="24" r="16" stroke="#047857" stroke-width="2.5" stroke-dasharray="2 2"/>
+              <circle cx="24" cy="24" r="11" fill="#047857" fill-opacity="0.12"/>
+              <path d="M24 10V38M10 24H38" stroke="#047857" stroke-width="1.8"/>
+              <path d="M16 34L24 14L32 34" stroke="#047857" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M19 28H29" stroke="#0ea76e" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <h1>DR. DESIGN PVT. LTD.</h1>
+            <span>ERP PORTAL</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Role Presentation -->
+        <div class="welcome-content">
+          <h2 class="welcome-title">Welcome</h2>
+          <h3 class="role-headline" id="leftRoleHeadline">Sign in to the Lead Generation Panel ERP</h3>
+          <p class="role-description" id="leftRoleDescription">
+            Generate leads, log calls, send intro emails and WhatsApps, run email campaigns and pass qualified leads to sales.
+          </p>
+
+          <!-- Role Selector Buttons (Pills) -->
+          <div class="role-pills-label">Switch Role To Test Panel:</div>
+          <div class="role-pills-grid" id="rolePillsContainer">
+            <button type="button" class="role-pill active" data-role="LEAD_GENERATION">Lead Generation</button>
+            <button type="button" class="role-pill" data-role="INSIDE_SALES">Inside Sale</button>
+            <button type="button" class="role-pill" data-role="CRM">CRM</button>
+            <button type="button" class="role-pill" data-role="TECHNICAL">Technical</button>
+            <button type="button" class="role-pill" data-role="ACCOUNTS">Accounts</button>
+            <button type="button" class="role-pill" data-role="HR">HR Management</button>
+            <button type="button" class="role-pill" data-role="ADMIN">Admin</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Left Bottom Footer -->
+      <div class="left-footer">
+        <div class="footer-links">
+          <a href="#">DRDESIGNTECH.COM</a>
+          <a href="#">HELP CENTER</a>
+          <span>SUPPORT 10 AM – 6 PM IST, MON – SAT</span>
+        </div>
+        <div class="footer-copy">
+          © 2026 DR. DESIGN PVT. LTD. ALL RIGHTS RESERVED.
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Emerald Green Login Box -->
+    <div class="right-section">
+      <div></div>
+
+      <div class="form-wrapper">
+        <div class="panel-badge" id="rightPanelBadge">LEAD GENERATION PANEL ERP</div>
+        <h2 class="login-heading">Login to your account</h2>
+        <p class="login-subheading" id="rightPanelSubheading">For the Prospect / Lead Generation team.</p>
+
+        <!-- Alert box for errors -->
+        <div class="alert-box {% if error_message %}show{% endif %}" id="errorAlert">
+          {{ error_message|default:"Invalid credentials. Please verify your email & password." }}
+        </div>
+
+        <!-- Login Form -->
+        <form method="POST" action="{% url 'erp_login' %}" id="loginForm">
+          {% csrf_token %}
+          <input type="hidden" name="selected_role" id="selectedRoleInput" value="LEAD_GENERATION">
+
+          <!-- Email Input -->
+          <div class="input-group">
+            <label class="input-label" for="userEmail">Your Email</label>
+            <div class="input-field-wrapper">
+              <input 
+                type="email" 
+                id="userEmail" 
+                name="email" 
+                class="text-input" 
+                placeholder="leadmanager@drdesigntech.com"
+                value="{{ request.POST.email|default:'' }}"
+                required
+                autocomplete="email"
+              >
+            </div>
+          </div>
+
+          <!-- Password Input -->
+          <div class="input-group">
+            <label class="input-label" for="userPassword">Password</label>
+            <div class="input-field-wrapper">
+              <input 
+                type="password" 
+                id="userPassword" 
+                name="password" 
+                class="text-input" 
+                placeholder="••••••••••••"
+                required
+                autocomplete="current-password"
+              >
+              <button type="button" class="eye-toggle-btn" id="togglePasswordBtn" title="Toggle password visibility">
+                <!-- Eye Icon SVG -->
+                <svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="actions-row">
+            <button type="submit" class="btn-login" id="submitBtn">LOGIN</button>
+            <a href="#" class="forgot-link">Forgot Password?</a>
+          </div>
+        </form>
+
+        <!-- Demo Credentials / Auto-fill Helper -->
+        <div class="demo-info-card">
+          <div class="demo-info-text">
+            <span>Data is saved in this browser. Demo login:</span>
+            <span style="font-size:11px; opacity: 0.85;">(Click to auto-fill)</span>
+          </div>
+          <div class="demo-cred-pill" id="demoCredPill" title="Click to auto-fill credentials">
+            <span id="demoCredText">leadmanager@drdesigntech.com · Welcome@123</span>
+            <span class="demo-badge-action">Auto-fill</span>
+          </div>
+
+          <!-- Instant Check Panel Mode (Auto-Login to Active Role) -->
+          <div class="quick-test-row">
+            <button type="button" class="btn-quick-test" id="btnPreviewPanel">
+              ⚡ Open & Test This Role Panel
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Footer URL -->
+      <div class="right-footer-url" id="rightFooterUrl">
+        erp.drdesigntech.com/leadgen
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Configuration for all ERP Roles
+    const ROLE_CONFIG = {
+      LEAD_GENERATION: {
+        headline: "Sign in to the Lead Generation Panel ERP",
+        description: "Generate leads, log calls, send intro emails and WhatsApps, run email campaigns and pass qualified leads to sales.",
+        badge: "LEAD GENERATION PANEL ERP",
+        subheading: "For the Prospect / Lead Generation team.",
+        email: "leadmanager@drdesigntech.com",
+        password: "Welcome@123",
+        slug: "leadgen",
+        url: "erp.drdesigntech.com/leadgen"
+      },
+      INSIDE_SALES: {
+        headline: "Sign in to the Inside Sales Panel ERP",
+        description: "Follow up on qualified leads, prepare commercial quotes, manage product demos, negotiate pricing and close deals.",
+        badge: "INSIDE SALES PANEL ERP",
+        subheading: "For the Inside Sales & Closers team.",
+        email: "sales@drdesigntech.com",
+        password: "Welcome@123",
+        slug: "insidesales",
+        url: "erp.drdesigntech.com/insidesales"
+      },
+      CRM: {
+        headline: "Sign in to the CRM & Client Relations Panel ERP",
+        description: "Manage post-sales customer onboarding, handle queries & support tickets, track SLA compliance, and drive renewals.",
+        badge: "CRM PANEL ERP",
+        subheading: "For the Customer Relationship & Support team.",
+        email: "crm@drdesigntech.com",
+        password: "Welcome@123",
+        slug: "crm",
+        url: "erp.drdesigntech.com/crm"
+      },
+      TECHNICAL: {
+        headline: "Sign in to the Technical & Engineering Panel ERP",
+        description: "Review client CAD models, execute feasibility studies, manage design revisions, and coordinate engineering deliverables.",
+        badge: "TECHNICAL PANEL ERP",
+        subheading: "For the CAD, Design & Engineering team.",
+        email: "technical@drdesigntech.com",
+        password: "Welcome@123",
+        slug: "technical",
+        url: "erp.drdesigntech.com/technical"
+      },
+      ACCOUNTS: {
+        headline: "Sign in to the Accounts & Finance Panel ERP",
+        description: "Generate tax invoices, track receivables & payables, manage vendor billing, audit GST filings and reconcile ledger balances.",
+        badge: "ACCOUNTS & FINANCE PANEL ERP",
+        subheading: "For the Accounts, Billing & Audit team.",
+        email: "accounts@drdesigntech.com",
+        password: "Welcome@123",
+        slug: "accounts",
+        url: "erp.drdesigntech.com/accounts"
+      },
+      HR: {
+        headline: "Sign in to the HR Management Panel ERP",
+        description: "Manage employee onboarding, attendance records, leave approvals, monthly payroll processing, performance and hiring.",
+        badge: "HR MANAGEMENT PANEL ERP",
+        subheading: "For the People Operations & HR team.",
+        email: "hr@drdesigntech.com",
+        password: "Welcome@123",
+        slug: "hr",
+        url: "erp.drdesigntech.com/hr"
+      },
+      ADMIN: {
+        headline: "Sign in to the Executive Admin Panel ERP",
+        description: "Complete organization-wide visibility, access control management, system configurations, master databases and executive reports.",
+        badge: "EXECUTIVE ADMIN PANEL ERP",
+        subheading: "For the System Administrators & Directors.",
+        email: "admin@drdesigntech.com",
+        password: "Welcome@123",
+        slug: "admin",
+        url: "erp.drdesigntech.com/admin"
+      }
+    };
+
+    let currentRole = "LEAD_GENERATION";
+
+    const leftRoleHeadline = document.getElementById("leftRoleHeadline");
+    const leftRoleDescription = document.getElementById("leftRoleDescription");
+    const rightPanelBadge = document.getElementById("rightPanelBadge");
+    const rightPanelSubheading = document.getElementById("rightPanelSubheading");
+    const demoCredText = document.getElementById("demoCredText");
+    const rightFooterUrl = document.getElementById("rightFooterUrl");
+    const userEmailInput = document.getElementById("userEmail");
+    const userPasswordInput = document.getElementById("userPassword");
+    const selectedRoleInput = document.getElementById("selectedRoleInput");
+    const demoCredPill = document.getElementById("demoCredPill");
+    const btnPreviewPanel = document.getElementById("btnPreviewPanel");
+    const togglePasswordBtn = document.getElementById("togglePasswordBtn");
+    const rolePills = document.querySelectorAll(".role-pill");
+
+    function setRole(roleKey, autoFill = false) {
+      const config = ROLE_CONFIG[roleKey];
+      if (!config) return;
+
+      currentRole = roleKey;
+      selectedRoleInput.value = roleKey;
+
+      // Update texts
+      leftRoleHeadline.textContent = config.headline;
+      leftRoleDescription.textContent = config.description;
+      rightPanelBadge.textContent = config.badge;
+      rightPanelSubheading.textContent = config.subheading;
+      demoCredText.textContent = `${config.email} · ${config.password}`;
+      rightFooterUrl.textContent = config.url;
+
+      // Update placeholder
+      userEmailInput.placeholder = config.email;
+
+      // Update active pill button
+      rolePills.forEach(pill => {
+        if (pill.getAttribute("data-role") === roleKey) {
+          pill.classList.add("active");
+        } else {
+          pill.classList.remove("active");
+        }
+      });
+
+      if (autoFill) {
+        userEmailInput.value = config.email;
+        userPasswordInput.value = config.password;
+      }
+    }
+
+    // Role pill click events
+    rolePills.forEach(pill => {
+      pill.addEventListener("click", () => {
+        const role = pill.getAttribute("data-role");
+        setRole(role, false);
+      });
+    });
+
+    // Auto-fill click on demo credential card
+    demoCredPill.addEventListener("click", () => {
+      const config = ROLE_CONFIG[currentRole];
+      userEmailInput.value = config.email;
+      userPasswordInput.value = config.password;
+      
+      // Visual feedback
+      demoCredPill.style.background = "rgba(255, 255, 255, 0.35)";
+      setTimeout(() => {
+        demoCredPill.style.background = "";
+      }, 300);
+    });
+
+    // Auto-login to selected role via Preview button
+    btnPreviewPanel.addEventListener("click", () => {
+      const config = ROLE_CONFIG[currentRole];
+      userEmailInput.value = config.email;
+      userPasswordInput.value = config.password;
+      document.getElementById("loginForm").submit();
+    });
+
+    // Password visibility toggle
+    let passwordVisible = false;
+    togglePasswordBtn.addEventListener("click", () => {
+      passwordVisible = !passwordVisible;
+      userPasswordInput.type = passwordVisible ? "text" : "password";
+      togglePasswordBtn.innerHTML = passwordVisible 
+        ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`
+        : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+    });
+
+    // Check query param for default role (e.g. ?role=crm)
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramRole = urlParams.get("role");
+    if (paramRole) {
+      const matchedKey = Object.keys(ROLE_CONFIG).find(k => ROLE_CONFIG[k].slug.toLowerCase() === paramRole.toLowerCase());
+      if (matchedKey) setRole(matchedKey, false);
+      else setRole("LEAD_GENERATION", false);
+    } else {
+      setRole("LEAD_GENERATION", false);
+    }
+  </script>
+</body>
+</html>
+
