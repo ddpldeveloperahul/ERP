@@ -1,8 +1,8 @@
-from django.db import models
-
-# Create your models here.
+import random
+from datetime import timedelta
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.utils import timezone
 
 
 # 1. Custom User Manager
@@ -31,6 +31,7 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
         extra_fields.setdefault("role", "ADMIN")
+        extra_fields.setdefault("is_email_verified", True)
 
         if extra_fields.get("is_staff") is not True:
             raise ValueError("Superuser must have is_staff=True")
@@ -73,6 +74,11 @@ class User(AbstractUser):
         choices=ROLE_CHOICES
     )
 
+    # Email verification status
+    is_email_verified = models.BooleanField(
+        default=False
+    )
+
     # Custom Manager
     objects = CustomUserManager()
 
@@ -83,3 +89,221 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.email} ({self.get_role_display()})"
+
+
+# 3. OTP Verification Model
+class EmailOTP(models.Model):
+    PURPOSE_CHOICES = [
+        ("SIGNUP", "Signup Verification"),
+        ("FORGOT_PASSWORD", "Forgot Password"),
+    ]
+
+    email = models.EmailField(
+        max_length=255,
+        db_index=True
+    )
+    otp = models.CharField(
+        max_length=6
+    )
+    purpose = models.CharField(
+        max_length=20,
+        choices=PURPOSE_CHOICES,
+        default="SIGNUP"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+    expires_at = models.DateTimeField()
+    is_verified = models.BooleanField(
+        default=False
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Email OTP"
+        verbose_name_plural = "Email OTPs"
+
+    def __str__(self):
+        status = "Verified" if self.is_verified else "Pending"
+        return f"{self.email} [{self.purpose}] - {self.otp} ({status})"
+
+    def is_valid(self):
+        return (not self.is_verified) and (timezone.now() <= self.expires_at)
+
+    @classmethod
+    def generate_otp(cls, email, purpose="SIGNUP", expiry_minutes=10):
+        otp = f"{random.randint(100000, 999999)}"
+        expires_at = timezone.now() + timedelta(minutes=expiry_minutes)
+
+        otp_record = cls.objects.create(
+            email=email,
+            otp=otp,
+            purpose=purpose,
+            expires_at=expires_at,
+        )
+        return otp_record
+
+
+# 4. Lead Model (Lead Generation)
+class Lead(models.Model):
+    CLIENT_IS_CHOICES = [
+        ("Domestic", "Domestic"),
+        ("International", "International"),
+    ]
+
+    PROJECT_CATEGORY_CHOICES = [
+        ("Website Design & Development", "Website Design & Development"),
+        ("E-commerce Website", "E-commerce Website"),
+        ("Mobile App Development", "Mobile App Development"),
+        ("Custom Software / ERP / CRM", "Custom Software / ERP / CRM"),
+        ("SEO", "SEO"),
+        ("Social Media Marketing", "Social Media Marketing"),
+        ("Google / Meta Ads", "Google / Meta Ads"),
+        ("Graphic Designing", "Graphic Designing"),
+        ("Video Editing", "Video Editing"),
+        ("UI/UX Design", "UI/UX Design"),
+        ("Website Maintenance", "Website Maintenance"),
+        ("Domain & Hosting", "Domain & Hosting"),
+    ]
+
+    NEXT_FOLLOW_UP_CHOICES = [
+        ("Yes", "Yes"),
+        ("No", "No"),
+    ]
+
+    LEAD_SOURCE_CHOICES = [
+        ("Calling", "Calling"),
+        ("WhatsApp", "WhatsApp"),
+        ("Email", "Email"),
+        ("Website Enquiry", "Website Enquiry"),
+        ("Social Media", "Social Media"),
+        ("Referral", "Referral"),
+        ("Walk-in", "Walk-in"),
+        ("Freelance Portal", "Freelance Portal"),
+        ("Google Ads", "Google Ads"),
+    ]
+
+    STATUS_CHOICES = [
+        ("Open", "Open"),
+        ("In Progress", "In Progress"),
+        ("Follow Up", "Follow Up"),
+        ("Converted", "Converted"),
+        ("Closed", "Closed"),
+        ("Lost", "Lost"),
+    ]
+
+    LEAD_TYPE_CHOICES = [
+        ("Inbound", "Inbound"),
+        ("Outbound", "Outbound"),
+        ("Hot", "Hot"),
+        ("Warm", "Warm"),
+        ("Cold", "Cold"),
+    ]
+
+    client_full_name = models.CharField(
+        max_length=255,
+        db_column="name",
+        verbose_name="Client Full Name"
+    )
+    client_email = models.EmailField(
+        max_length=255,
+        db_column="email",
+        verbose_name="Client Email ID"
+    )
+    client_company_name = models.CharField(
+        max_length=255,
+        db_column="company",
+        verbose_name="Client Company Name"
+    )
+    client_website_address = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        default="",
+        db_column="website",
+        verbose_name="Client Website Address"
+    )
+    client_is = models.CharField(
+        max_length=50,
+        choices=CLIENT_IS_CHOICES,
+        db_column="prospect_is",
+        verbose_name="Client Is (Domestic / International)"
+    )
+    country_name = models.CharField(
+        max_length=100,
+        db_column="country",
+        verbose_name="Country Name"
+    )
+    client_full_address = models.TextField(
+        db_column="address",
+        verbose_name="Client Full Address"
+    )
+    client_contact_number = models.CharField(
+        max_length=50,
+        db_column="phone",
+        verbose_name="Client Contact Number"
+    )
+    lead_type = models.CharField(
+        max_length=50,
+        choices=LEAD_TYPE_CHOICES,
+        db_column="lead_type",
+        verbose_name="Lead Type"
+    )
+    project_category = models.CharField(
+        max_length=150,
+        choices=PROJECT_CATEGORY_CHOICES,
+        db_column="category",
+        verbose_name="Project Category"
+    )
+    requirement_description = models.TextField(
+        db_column="requirement",
+        verbose_name="Requirement Description"
+    )
+    status = models.CharField(
+        max_length=50,
+        choices=STATUS_CHOICES,
+        default="Open",
+        db_column="status",
+        verbose_name="Status"
+    )
+    next_follow_up = models.CharField(
+        max_length=10,
+        choices=NEXT_FOLLOW_UP_CHOICES,
+        default="Yes",
+        db_column="next_follow_up",
+        verbose_name="Next Follow Up"
+    )
+    lead_generated_from = models.CharField(
+        max_length=100,
+        choices=LEAD_SOURCE_CHOICES,
+        default="Calling",
+        db_column="source",
+        verbose_name="Lead generated from?"
+    )
+
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="leads",
+        db_column="created_by_id",
+        verbose_name="Created By (User)"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
+    class Meta:
+        db_table = "erp_lead"
+        ordering = ["-created_at"]
+        verbose_name = "Lead"
+        verbose_name_plural = "Leads"
+
+    @property
+    def lead_id(self):
+        return f"DR-LEAD-{self.id:04d}" if self.id else ""
+
+    def __str__(self):
+        return f"{self.lead_id} - {self.client_full_name} ({self.client_company_name})"

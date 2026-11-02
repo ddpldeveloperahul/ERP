@@ -3,6 +3,13 @@ from erp.views import (
     home,
     dashboard_view,
     SignupAPIView,
+    VerifyOTPAPIView,
+    ResendOTPAPIView,
+    ForgotPasswordRequestAPIView,
+    ForgotPasswordVerifyOTPAPIView,
+    ResetPasswordAPIView,
+    LeadCreateAPIView,
+    LeadDetailAPIView,
     LoginAPIView,
     LogoutAPIView,
 )
@@ -23,9 +30,41 @@ urlpatterns = [
     path("logout/", LogoutAPIView.as_view(), name="logout"),
     path("logout/", LogoutAPIView.as_view(), name="erp_logout"),
 
-    # REST APIs
-    path("signup/", SignupAPIView.as_view(), name="signup"),
+    # REST APIs - Signup & OTP Verification
     path("api/signup/", SignupAPIView.as_view(), name="api_signup"),
+    path("signup/", SignupAPIView.as_view(), name="signup"),
+
+    path("api/verify-otp/", VerifyOTPAPIView.as_view(), name="api_verify_otp"),
+    path("verify-otp/", VerifyOTPAPIView.as_view(), name="verify_otp"),
+
+    path("api/resend-otp/", ResendOTPAPIView.as_view(), name="api_resend_otp"),
+    path("resend-otp/", ResendOTPAPIView.as_view(), name="resend_otp"),
+
+    # REST APIs - Forgot & Reset Password
+    path("api/forgot-password/", ForgotPasswordRequestAPIView.as_view(), name="api_forgot_password"),
+    path("forgot-password/", ForgotPasswordRequestAPIView.as_view(), name="forgot_password"),
+
+    path("api/forgot-password/verify-otp/", ForgotPasswordVerifyOTPAPIView.as_view(), name="api_forgot_password_verify"),
+    path("forgot-password/verify-otp/", ForgotPasswordVerifyOTPAPIView.as_view(), name="forgot_password_verify"),
+
+    path("api/forgot-password/reset-password/", ResetPasswordAPIView.as_view(), name="api_reset_password"),
+    path("forgot-password/reset-password/", ResetPasswordAPIView.as_view(), name="reset_password"),
+
+    # REST APIs - Lead Generation (Create, List, Update, Delete)
+    path("api/leads/", LeadCreateAPIView.as_view(), name="api_leads"),
+    path("api/leads/add/", LeadCreateAPIView.as_view(), name="api_add_lead"),
+    path("api/leads/<int:pk>/", LeadDetailAPIView.as_view(), name="api_lead_detail"),
+    path("api/leads/<int:pk>/update/", LeadDetailAPIView.as_view(), name="api_lead_update"),
+    path("api/leads/<int:pk>/delete/", LeadDetailAPIView.as_view(), name="api_lead_delete"),
+
+    # Web / Alias paths
+    path("leads/", LeadCreateAPIView.as_view(), name="leads"),
+    path("leads/add/", LeadCreateAPIView.as_view(), name="add_lead"),
+    path("leads/<int:pk>/", LeadDetailAPIView.as_view(), name="lead_detail"),
+    path("leads/<int:pk>/update/", LeadDetailAPIView.as_view(), name="lead_update"),
+    path("leads/<int:pk>/delete/", LeadDetailAPIView.as_view(), name="lead_delete"),
+
+    # REST APIs - Auth Session & JWT
     path("api/login/", LoginAPIView.as_view(), name="api_login"),
     path("api/logout/", LogoutAPIView.as_view(), name="api_logout"),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
