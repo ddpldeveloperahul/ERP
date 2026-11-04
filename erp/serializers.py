@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 
-from erp.models import EmailOTP, Lead
+from erp.models import EmailOTP, Lead, ScheduleCallback
 from erp.utils import verify_password_reset_token
 
 User = get_user_model()
@@ -293,3 +293,119 @@ class LeadSerializer(serializers.ModelSerializer):
             mutable_data["lead_generated_from"] = mutable_data["lead_source"]
 
         return super().to_internal_value(mutable_data)
+
+
+
+# --- Schedule Callback Serializers ---
+
+class ScheduleCallbackSerializer(serializers.ModelSerializer):
+    lead_id = serializers.CharField(
+        write_only=True,
+        required=False,
+        help_text="Lead code (e.g. 'DR-LEAD-0011') or numeric Lead ID (e.g. 11)"
+    )
+    lead_ref = serializers.SerializerMethodField(read_only=True)
+    client_name = serializers.ReadOnlyField(source="lead.client_full_name")
+    client_email = serializers.ReadOnlyField(source="lead.client_email")
+    client_company = serializers.ReadOnlyField(source="lead.client_company_name")
+    created_by_name = serializers.SerializerMethodField(read_only=True)
+
+    date_time = serializers.DateTimeField(
+        input_formats=[
+            "%Y-%m-%d %H:%M:%S",
+            "%Y-%m-%d %H:%M",
+            "%Y-%m-%dT%H:%M:%S",
+            "%Y-%m-%dT%H:%M:%SZ",
+            "%Y-%m-%dT%H:%M",
+            "%d-%m-%Y %H:%M",
+            "%d-%m-%Y %H:%M:%S",
+            "%d/%m/%Y %H:%M",
+            "%d/%m/%Y %H:%M:%S",
+        ],
+        help_text="Format: 'YYYY-MM-DD HH:MM:SS' or 'DD-MM-YYYY HH:MM'"
+    )
+
+    class Meta:
+        model = ScheduleCallback
+        fields = [
+            "id",
+            "lead",
+            "lead_id",
+            "lead_ref",
+            "client_name",
+            "client_email",
+            "client_company",
+            "phone",
+            "date_time",
+            "type",
+            "notes",
+            "status",
+            "created_by",
+            "created_by_name",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "lead_ref",
+            "client_name",
+            "client_email",
+            "client_company",
+            "created_by",
+            "created_by_name",
+            "created_at",
+            "updated_at",
+        ]
+        extra_kwargs = {
+            "lead": {"required": False},
+        }
+
+    def get_lead_ref(self, obj):
+        return obj.lead.lead_id if obj.lead else None
+
+    def get_created_by_name(self, obj):
+        if obj.created_by:
+            full_name = f"{obj.created_by.first_name} {obj.created_by.last_name}".strip()
+            return full_name or obj.created_by.email
+        return None
+
+    def validate(self, data):
+        # Resolve lead from lead_id or lead field
+        lead = data.get("lead")
+        lead_id_input = data.pop("lead_id", None)
+
+        if lead_id_input:
+            lead_id_str = str(lead_id_input).strip()
+            # If formatted like DR-LEAD-0011
+            if lead_id_str.upper().startswith("DR-LEAD-"):
+                num_str = lead_id_str.upper().replace("DR-LEAD-", "").lstrip("0")
+                lead_pk = int(num_str) if (num_str and num_str.isdigit()) else 0
+            elif lead_id_str.isdigit():
+                lead_pk = int(lead_id_str)
+            else:
+                lead_pk = None
+
+            if lead_pk is None:
+                raise serializers.ValidationError({
+                    "lead_id": f"Invalid lead_id format '{lead_id_input}'. Expected integer ID or 'DR-LEAD-XXXX'."
+                })
+
+            try:
+                lead = Lead.objects.get(pk=lead_pk)
+            except Lead.DoesNotExist:
+                raise serializers.ValidationError({
+                    "lead_id": f"No lead found with ID '{lead_id_input}'."
+                })
+
+            data["lead"] = lead
+
+        if not data.get("lead") and not self.instance:
+            raise serializers.ValidationError({"lead_id": "Lead ID is required to schedule a callback."})
+
+        # Auto-populate phone from lead contact number if left blank
+        if not data.get("phone"):
+            resolved_lead = data.get("lead") or (self.instance.lead if self.instance else None)
+            if resolved_lead and resolved_lead.client_contact_number:
+                data["phone"] = resolved_lead.client_contact_number
+
+        return data

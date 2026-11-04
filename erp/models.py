@@ -307,3 +307,76 @@ class Lead(models.Model):
 
     def __str__(self):
         return f"{self.lead_id} - {self.client_full_name} ({self.client_company_name})"
+
+
+
+# 5. Schedule Callback Model
+class ScheduleCallback(models.Model):
+    CALLBACK_TYPE_CHOICES = [
+        ("Public", "Public"),
+        ("Private", "Private"),
+    ]
+
+    STATUS_CHOICES = [
+        ("Pending", "Pending"),
+        ("Completed", "Completed"),
+        ("Cancelled", "Cancelled"),
+    ]
+
+    lead = models.ForeignKey(
+        Lead,
+        on_delete=models.CASCADE,
+        related_name="callbacks",
+        verbose_name="Associated Lead"
+    )
+    phone = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name="Phone Number"
+    )
+    date_time = models.DateTimeField(
+        verbose_name="Callback Date & Time"
+    )
+    type = models.CharField(
+        max_length=20,
+        choices=CALLBACK_TYPE_CHOICES,
+        default="Public",
+        verbose_name="Callback Type"
+    )
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        default="",
+        verbose_name="Notes"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="Pending",
+        verbose_name="Callback Status"
+    )
+
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="scheduled_callbacks",
+        verbose_name="Created By"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
+    class Meta:
+        ordering = ["date_time"]
+        verbose_name = "Schedule Callback"
+        verbose_name_plural = "Schedule Callbacks"
+
+    def __str__(self):
+        lead_ref = self.lead.lead_id if hasattr(self.lead, "lead_id") else f"Lead #{self.lead_id}"
+        return f"{lead_ref} - {self.date_time.strftime('%Y-%m-%d %H:%M')} ({self.type})"

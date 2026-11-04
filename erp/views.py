@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.db.models import Q, Case, When, Value, IntegerField
 
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -13,7 +14,7 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
-from erp.models import EmailOTP, Lead
+from erp.models import EmailOTP, Lead, ScheduleCallback
 from erp.utils import (
     send_otp_email,
     generate_password_reset_token,
@@ -27,6 +28,7 @@ from erp.serializers import (
     ForgotPasswordVerifyOTPSerializer,
     ResetPasswordSerializer,
     LeadSerializer,
+    ScheduleCallbackSerializer,
 )
 
 User = get_user_model()
@@ -377,17 +379,152 @@ class LeadCreateAPIView(APIView):
 
     def get(self, request):
         """
-        List all leads (Admins see all, staff see leads created by them)
+        List & Search leads:
+        - Multi-field tokenized Elastic-style search (?search= or ?q=) with relevance scoring
+        - Attribute filters (?status=, ?lead_type=, ?project_category=, ?client_is=, ?country=, ?source=, ?next_follow_up=)
+        - Date range filter (?date_from=, ?date_to=)
+        - Ordering (?ordering=)
+        - Pagination (?page= & ?page_size=)
         """
         if getattr(request.user, "role", "") == "ADMIN" or request.user.is_superuser:
             leads = Lead.objects.all()
         else:
             leads = Lead.objects.filter(created_by=request.user)
 
+        # 1. Multi-Field Elastic Search (?search= or ?q=)
+        search_query = request.query_params.get("search") or request.query_params.get("q")
+        if search_query:
+            search_query = search_query.strip()
+            # Tokenize into words to match across multiple fields
+            tokens = search_query.split()
+            for token in tokens:
+                token_q = (
+                    Q(client_full_name__icontains=token)
+                    | Q(client_email__icontains=token)
+                    | Q(client_company_name__icontains=token)
+                    | Q(client_website_address__icontains=token)
+                    | Q(client_contact_number__icontains=token)
+                    | Q(country_name__icontains=token)
+                    | Q(client_full_address__icontains=token)
+                    | Q(lead_type__icontains=token)
+                    | Q(project_category__icontains=token)
+                    | Q(requirement_description__icontains=token)
+                    | Q(status__icontains=token)
+                    | Q(next_follow_up__icontains=token)
+                    | Q(lead_generated_from__icontains=token)
+                    | Q(client_is__icontains=token)
+                )
+
+                # Check if token matches numeric ID or DR-LEAD-XXXX format
+                if token.isdigit():
+                    token_q |= Q(id=int(token))
+                elif token.upper().startswith("DR-LEAD-"):
+                    num_str = token.upper().replace("DR-LEAD-", "").lstrip("0")
+                    if num_str.isdigit():
+                        token_q |= Q(id=int(num_str))
+
+                leads = leads.filter(token_q)
+
+            # Elastic-style Relevance Ranking (Exact Name > Company > Partial Matches)
+            leads = leads.annotate(
+                relevance_score=Case(
+                    When(client_full_name__iexact=search_query, then=Value(100)),
+                    When(client_company_name__iexact=search_query, then=Value(90)),
+                    When(client_full_name__icontains=search_query, then=Value(80)),
+                    When(client_company_name__icontains=search_query, then=Value(70)),
+                    When(client_email__icontains=search_query, then=Value(60)),
+                    When(client_contact_number__icontains=search_query, then=Value(50)),
+                    When(project_category__icontains=search_query, then=Value(40)),
+                    When(lead_type__icontains=search_query, then=Value(30)),
+                    When(requirement_description__icontains=search_query, then=Value(20)),
+                    default=Value(10),
+                    output_field=IntegerField(),
+                )
+            )
+
+        # 2. Field-Specific Filters
+        status_param = request.query_params.get("status")
+        if status_param:
+            leads = leads.filter(status__iexact=status_param.strip())
+
+        lead_type_param = request.query_params.get("lead_type")
+        if lead_type_param:
+            leads = leads.filter(lead_type__iexact=lead_type_param.strip())
+
+        category_param = request.query_params.get("project_category") or request.query_params.get("category")
+        if category_param:
+            leads = leads.filter(project_category__icontains=category_param.strip())
+
+        client_is_param = request.query_params.get("client_is")
+        if client_is_param:
+            leads = leads.filter(client_is__iexact=client_is_param.strip())
+
+        country_param = request.query_params.get("country_name") or request.query_params.get("country")
+        if country_param:
+            leads = leads.filter(country_name__icontains=country_param.strip())
+
+        source_param = request.query_params.get("lead_generated_from") or request.query_params.get("source")
+        if source_param:
+            leads = leads.filter(lead_generated_from__icontains=source_param.strip())
+
+        follow_up_param = request.query_params.get("next_follow_up")
+        if follow_up_param:
+            leads = leads.filter(next_follow_up__iexact=follow_up_param.strip())
+
+        # Date Filters
+        date_from = request.query_params.get("date_from") or request.query_params.get("start_date")
+        if date_from:
+            leads = leads.filter(created_at__date__gte=date_from)
+
+        date_to = request.query_params.get("date_to") or request.query_params.get("end_date")
+        if date_to:
+            leads = leads.filter(created_at__date__lte=date_to)
+
+        # 3. Sorting / Ordering
+        ordering = request.query_params.get("ordering")
+        valid_order_fields = [
+            "created_at", "-created_at",
+            "updated_at", "-updated_at",
+            "client_full_name", "-client_full_name",
+            "client_company_name", "-client_company_name",
+            "status", "-status",
+            "lead_type", "-lead_type",
+        ]
+        if ordering and ordering in valid_order_fields:
+            leads = leads.order_by(ordering)
+        elif search_query:
+            leads = leads.order_by("-relevance_score", "-created_at")
+        else:
+            leads = leads.order_by("-created_at")
+
+        # 4. Pagination (Optional - if requested via ?page=)
+        total_count = leads.count()
+        page = request.query_params.get("page")
+        page_size = request.query_params.get("page_size", 20)
+
+        if page:
+            try:
+                page = int(page)
+                page_size = int(page_size)
+                start = (page - 1) * page_size
+                end = start + page_size
+                paginated_leads = leads[start:end]
+                serializer = LeadSerializer(paginated_leads, many=True)
+                return Response({
+                    "success": True,
+                    "count": total_count,
+                    "page": page,
+                    "page_size": page_size,
+                    "total_pages": (total_count + page_size - 1) // page_size if page_size > 0 else 1,
+                    "data": serializer.data
+                }, status=status.HTTP_200_OK)
+            except (ValueError, TypeError):
+                pass
+
         serializer = LeadSerializer(leads, many=True)
         return Response({
             "success": True,
-            "count": leads.count(),
+            "count": total_count,
             "data": serializer.data
         }, status=status.HTTP_200_OK)
 
@@ -491,6 +628,220 @@ class LeadDetailAPIView(APIView):
         """
         Support POST to /delete/ or /update/ endpoints for HTML/standard forms
         """
+        if "delete" in request.path:
+            return self.delete(request, pk)
+        return self.put(request, pk)
+
+
+# --- Schedule Callback API Views ---
+
+class ScheduleCallbackListCreateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, lead_id=None):
+        """
+        List & Search scheduled callbacks:
+        - Optional filter by lead_id (URL parameter or query param)
+        - Multi-keyword search (?search= or ?q=) across client name, phone, notes, lead_id
+        - Filters (?status=, ?type=, ?date_from=, ?date_to=)
+        - Ordering (?ordering=)
+        """
+        user = request.user
+        if getattr(user, "role", "") == "ADMIN" or user.is_superuser:
+            callbacks = ScheduleCallback.objects.all()
+        else:
+            callbacks = ScheduleCallback.objects.filter(
+                Q(type="Public") | Q(created_by=user) | Q(lead__created_by=user)
+            )
+
+        # 1. Filter by Lead (from URL or Query Param)
+        lead_query = lead_id or request.query_params.get("lead_id") or request.query_params.get("lead")
+        if lead_query:
+            lead_query_str = str(lead_query).strip()
+            if lead_query_str.upper().startswith("DR-LEAD-"):
+                num_str = lead_query_str.upper().replace("DR-LEAD-", "").lstrip("0")
+                lead_pk = int(num_str) if (num_str and num_str.isdigit()) else 0
+            elif lead_query_str.isdigit():
+                lead_pk = int(lead_query_str)
+            else:
+                lead_pk = None
+
+            if lead_pk is not None:
+                callbacks = callbacks.filter(lead_id=lead_pk)
+
+        # 2. Search (?search= or ?q=)
+        search_query = request.query_params.get("search") or request.query_params.get("q")
+        if search_query:
+            search_query = search_query.strip()
+            tokens = search_query.split()
+            for token in tokens:
+                token_q = (
+                    Q(lead__client_full_name__icontains=token)
+                    | Q(lead__client_company_name__icontains=token)
+                    | Q(lead__client_email__icontains=token)
+                    | Q(phone__icontains=token)
+                    | Q(notes__icontains=token)
+                    | Q(type__icontains=token)
+                    | Q(status__icontains=token)
+                )
+                if token.isdigit():
+                    token_q |= Q(id=int(token)) | Q(lead_id=int(token))
+                elif token.upper().startswith("DR-LEAD-"):
+                    num_str = token.upper().replace("DR-LEAD-", "").lstrip("0")
+                    if num_str.isdigit():
+                        token_q |= Q(lead_id=int(num_str))
+
+                callbacks = callbacks.filter(token_q)
+
+        # 3. Filters
+        type_param = request.query_params.get("type")
+        if type_param:
+            callbacks = callbacks.filter(type__iexact=type_param.strip())
+
+        status_param = request.query_params.get("status")
+        if status_param:
+            callbacks = callbacks.filter(status__iexact=status_param.strip())
+
+        date_from = request.query_params.get("date_from") or request.query_params.get("start_date")
+        if date_from:
+            callbacks = callbacks.filter(date_time__date__gte=date_from)
+
+        date_to = request.query_params.get("date_to") or request.query_params.get("end_date")
+        if date_to:
+            callbacks = callbacks.filter(date_time__date__lte=date_to)
+
+        # 4. Ordering
+        ordering = request.query_params.get("ordering", "date_time")
+        valid_orders = ["date_time", "-date_time", "created_at", "-created_at", "status", "-status"]
+        if ordering in valid_orders:
+            callbacks = callbacks.order_by(ordering)
+        else:
+            callbacks = callbacks.order_by("date_time")
+
+        # 5. Pagination (Optional)
+        total_count = callbacks.count()
+        page = request.query_params.get("page")
+        page_size = request.query_params.get("page_size", 20)
+
+        if page:
+            try:
+                page = int(page)
+                page_size = int(page_size)
+                start = (page - 1) * page_size
+                end = start + page_size
+                serializer = ScheduleCallbackSerializer(callbacks[start:end], many=True)
+                return Response({
+                    "success": True,
+                    "count": total_count,
+                    "page": page,
+                    "page_size": page_size,
+                    "total_pages": (total_count + page_size - 1) // page_size if page_size > 0 else 1,
+                    "data": serializer.data
+                }, status=status.HTTP_200_OK)
+            except (ValueError, TypeError):
+                pass
+
+        serializer = ScheduleCallbackSerializer(callbacks, many=True)
+        return Response({
+            "success": True,
+            "count": total_count,
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request, lead_id=None):
+        """
+        Schedule a new callback (POST)
+        """
+        data = request.data.copy() if hasattr(request.data, "copy") else dict(request.data)
+        if lead_id and "lead_id" not in data and "lead" not in data:
+            data["lead_id"] = lead_id
+
+        serializer = ScheduleCallbackSerializer(data=data)
+        if serializer.is_valid():
+            callback = serializer.save(created_by=request.user)
+            return Response({
+                "success": True,
+                "message": "Callback scheduled successfully.",
+                "data": ScheduleCallbackSerializer(callback).data
+            }, status=status.HTTP_201_CREATED)
+
+        return Response({
+            "success": False,
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ScheduleCallbackDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk, user):
+        try:
+            if getattr(user, "role", "") == "ADMIN" or user.is_superuser:
+                return ScheduleCallback.objects.get(pk=pk)
+            return ScheduleCallback.objects.get(
+                Q(pk=pk) & (Q(created_by=user) | Q(lead__created_by=user) | Q(type="Public"))
+            )
+        except ScheduleCallback.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        callback = self.get_object(pk, request.user)
+        if not callback:
+            return Response({
+                "success": False,
+                "message": "Callback not found or permission denied."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ScheduleCallbackSerializer(callback)
+        return Response({
+            "success": True,
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        callback = self.get_object(pk, request.user)
+        if not callback:
+            return Response({
+                "success": False,
+                "message": "Callback not found or permission denied."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ScheduleCallbackSerializer(callback, data=request.data, partial=True)
+        if serializer.is_valid():
+            updated = serializer.save()
+            return Response({
+                "success": True,
+                "message": "Callback updated successfully.",
+                "data": ScheduleCallbackSerializer(updated).data
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            "success": False,
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        return self.put(request, pk)
+
+    def delete(self, request, pk):
+        callback = self.get_object(pk, request.user)
+        if not callback:
+            return Response({
+                "success": False,
+                "message": "Callback not found or permission denied."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        lead_ref = callback.lead.lead_id if callback.lead else f"Lead #{callback.lead_id}"
+        callback.delete()
+        return Response({
+            "success": True,
+            "message": f"Callback for {lead_ref} deleted successfully.",
+            "data": {
+                "id": pk
+            }
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request, pk):
         if "delete" in request.path:
             return self.delete(request, pk)
         return self.put(request, pk)

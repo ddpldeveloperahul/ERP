@@ -346,3 +346,163 @@ class LeadAPITests(TestCase):
 
         # Ensure lead still exists
         self.assertTrue(Lead.objects.filter(pk=lead_id).exists())
+
+
+    def test_search_leads_by_name(self):
+        self.client.force_authenticate(user=self.user)
+        self.client.post(self.leads_url, self.valid_lead_payload, format="json")
+
+        # Search by partial name
+        response = self.client.get(f"{self.leads_url}?search=Aarav")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["success"])
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["data"][0]["client_full_name"], "Aarav Sharma")
+
+    def test_search_leads_multi_token(self):
+        self.client.force_authenticate(user=self.user)
+        self.client.post(self.leads_url, self.valid_lead_payload, format="json")
+
+        # Search across two different fields: name and city/address
+        response = self.client.get(f"{self.leads_url}?search=Aarav Noida")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
+    def test_filter_leads_by_status_and_category(self):
+        self.client.force_authenticate(user=self.user)
+        self.client.post(self.leads_url, self.valid_lead_payload, format="json")
+
+        # Match status
+        res1 = self.client.get(f"{self.leads_url}?status=Open")
+        self.assertEqual(res1.status_code, status.HTTP_200_OK)
+        self.assertEqual(res1.data["count"], 1)
+
+        # Mismatch status
+        res2 = self.client.get(f"{self.leads_url}?status=Closed")
+        self.assertEqual(res2.status_code, status.HTTP_200_OK)
+        self.assertEqual(res2.data["count"], 0)
+
+    def test_search_leads_pagination(self):
+        self.client.force_authenticate(user=self.user)
+        self.client.post(self.leads_url, self.valid_lead_payload, format="json")
+
+        # Paginated request
+        response = self.client.get(f"{self.leads_url}?page=1&page_size=1")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("page", response.data)
+        self.assertIn("total_pages", response.data)
+        self.assertEqual(len(response.data["data"]), 1)
+
+
+
+from erp.models import ScheduleCallback
+
+
+class ScheduleCallbackAPITests(TestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.callbacks_url = "/api/callbacks/"
+
+        self.user = User.objects.create_user(
+            email="callbackagent@drdesigntech.com",
+            password="AgentPassword@123",
+            first_name="Agent",
+            last_name="Callback",
+            role="LEAD_GEN",
+            is_active=True,
+            is_email_verified=True,
+        )
+
+        self.lead = Lead.objects.create(
+            client_full_name="David Lune",
+            client_email="david@fake.in",
+            client_company_name="Fake Corp",
+            client_website_address="https://fake.com",
+            client_is="Domestic",
+            country_name="India",
+            client_full_address="Gurugram, Haryana",
+            client_contact_number="+91 786678978",
+            lead_type="Warm",
+            project_category="E-commerce Website",
+            requirement_description="We need a complete custom ERP solution with multi-role access control, lead pipeline tracking, and invoice generation modules.",
+            status="Open",
+            next_follow_up="No",
+            lead_generated_from="Social Media",
+            created_by=self.user,
+        )
+
+        self.valid_callback_payload = {
+            "lead_id": self.lead.lead_id, # Testing formatted lead_id "DR-LEAD-XXXX"
+            "phone": "+91 786678978",
+            "date_time": "2026-11-10 14:30:00",
+            "type": "Public",
+            "notes": "Discuss custom ecommerce features and budget requirements.",
+            "status": "Pending",
+        }
+
+    def test_schedule_callback_success(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.callbacks_url, self.valid_callback_payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(response.data["success"])
+        self.assertEqual(response.data["data"]["lead_ref"], self.lead.lead_id)
+        self.assertEqual(response.data["data"]["client_name"], "David Lune")
+        self.assertEqual(response.data["data"]["phone"], "+91 786678978")
+        self.assertEqual(response.data["data"]["type"], "Public")
+
+        # Verify DB
+        callback = ScheduleCallback.objects.get(pk=response.data["data"]["id"])
+        self.assertEqual(callback.lead, self.lead)
+        self.assertEqual(callback.created_by, self.user)
+
+    def test_schedule_callback_phone_auto_populated_if_omitted(self):
+        self.client.force_authenticate(user=self.user)
+        payload = self.valid_callback_payload.copy()
+        payload.pop("phone") # Omit phone
+        response = self.client.post(self.callbacks_url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # Should auto-populate from lead.client_contact_number
+        self.assertEqual(response.data["data"]["phone"], self.lead.client_contact_number)
+
+    def test_list_and_search_callbacks(self):
+        self.client.force_authenticate(user=self.user)
+        self.client.post(self.callbacks_url, self.valid_callback_payload, format="json")
+
+        # List all
+        list_res = self.client.get(self.callbacks_url)
+        self.assertEqual(list_res.status_code, status.HTTP_200_OK)
+        self.assertTrue(list_res.data["success"])
+        self.assertGreaterEqual(list_res.data["count"], 1)
+
+        # Search by lead_id
+        search_res = self.client.get(f"{self.callbacks_url}?search={self.lead.lead_id}")
+        self.assertEqual(search_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(search_res.data["count"], 1)
+
+    def test_update_callback(self):
+        self.client.force_authenticate(user=self.user)
+        create_res = self.client.post(self.callbacks_url, self.valid_callback_payload, format="json")
+        callback_id = create_res.data["data"]["id"]
+
+        update_payload = {
+            "status": "Completed",
+            "notes": "Call finished. Client asked for written quote.",
+        }
+        patch_res = self.client.patch(f"{self.callbacks_url}{callback_id}/", update_payload, format="json")
+        self.assertEqual(patch_res.status_code, status.HTTP_200_OK)
+        self.assertTrue(patch_res.data["success"])
+        self.assertEqual(patch_res.data["data"]["status"], "Completed")
+        self.assertEqual(patch_res.data["data"]["notes"], "Call finished. Client asked for written quote.")
+
+    def test_delete_callback(self):
+        self.client.force_authenticate(user=self.user)
+        create_res = self.client.post(self.callbacks_url, self.valid_callback_payload, format="json")
+        callback_id = create_res.data["data"]["id"]
+
+        del_res = self.client.delete(f"{self.callbacks_url}{callback_id}/")
+        self.assertEqual(del_res.status_code, status.HTTP_200_OK)
+        self.assertTrue(del_res.data["success"])
+        self.assertFalse(ScheduleCallback.objects.filter(pk=callback_id).exists())

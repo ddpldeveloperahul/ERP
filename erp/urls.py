@@ -10,6 +10,8 @@ from erp.views import (
     ResetPasswordAPIView,
     LeadCreateAPIView,
     LeadDetailAPIView,
+    ScheduleCallbackListCreateAPIView,
+    ScheduleCallbackDetailAPIView,
     LoginAPIView,
     LogoutAPIView,
 )
@@ -63,6 +65,21 @@ urlpatterns = [
     path("leads/<int:pk>/", LeadDetailAPIView.as_view(), name="lead_detail"),
     path("leads/<int:pk>/update/", LeadDetailAPIView.as_view(), name="lead_update"),
     path("leads/<int:pk>/delete/", LeadDetailAPIView.as_view(), name="lead_delete"),
+
+    # REST APIs - Schedule Callback for Leads (CRUD)
+    path("api/callbacks/", ScheduleCallbackListCreateAPIView.as_view(), name="api_callbacks"),
+    path("api/callbacks/schedule/", ScheduleCallbackListCreateAPIView.as_view(), name="api_schedule_callback"),
+    path("api/callbacks/<int:pk>/", ScheduleCallbackDetailAPIView.as_view(), name="api_callback_detail"),
+    path("api/callbacks/<int:pk>/update/", ScheduleCallbackDetailAPIView.as_view(), name="api_callback_update"),
+    path("api/callbacks/<int:pk>/delete/", ScheduleCallbackDetailAPIView.as_view(), name="api_callback_delete"),
+    path("api/leads/<int:lead_id>/callbacks/", ScheduleCallbackListCreateAPIView.as_view(), name="api_lead_callbacks"),
+
+    # Web / Alias paths
+    path("callbacks/", ScheduleCallbackListCreateAPIView.as_view(), name="callbacks"),
+    path("callbacks/schedule/", ScheduleCallbackListCreateAPIView.as_view(), name="schedule_callback"),
+    path("callbacks/<int:pk>/", ScheduleCallbackDetailAPIView.as_view(), name="callback_detail"),
+    path("callbacks/<int:pk>/update/", ScheduleCallbackDetailAPIView.as_view(), name="callback_update"),
+    path("callbacks/<int:pk>/delete/", ScheduleCallbackDetailAPIView.as_view(), name="callback_delete"),
 
     # REST APIs - Auth Session & JWT
     path("api/login/", LoginAPIView.as_view(), name="api_login"),
