@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from django.db.models import Q, Case, When, Value, IntegerField
+from django.db.models import Q, Case, When, Value, IntegerField, Count
 
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -43,11 +43,14 @@ def home(request):
 
 # Dashboard View
 @login_required(login_url="login")
-def dashboard_view(request):
+def dashboard_view(request, active_tab="dashboard"):
     user = request.user
     full_name = f"{user.first_name} {user.last_name}".strip()
     if not full_name:
         full_name = user.email.split("@")[0].capitalize()
+
+    first_name = user.first_name or full_name.split()[0]
+    avatar_initial = first_name[0].upper() if first_name else "A"
 
     role_disp = (
         user.get_role_display()
@@ -55,8 +58,58 @@ def dashboard_view(request):
         else getattr(user, "role", "Staff")
     )
 
+    # JWT Token for client-side API requests
+    refresh = RefreshToken.for_user(user)
+    access_token = str(refresh.access_token)
+
+    # Active view tab (dashboard, leads_add, leads_manage, callbacks)
+    tab = request.GET.get("tab") or active_tab or "dashboard"
+
+    # Leads & Callbacks queryset
+    is_admin = getattr(user, "role", "") == "ADMIN" or user.is_superuser
+    if is_admin:
+        all_leads = Lead.objects.all()
+        all_callbacks = ScheduleCallback.objects.all()
+    else:
+        all_leads = Lead.objects.filter(created_by=user)
+        all_callbacks = ScheduleCallback.objects.filter(
+            Q(type="Public") | Q(created_by=user) | Q(lead__created_by=user)
+        )
+
+    now = timezone.now()
+    today = now.date()
+
+    total_leads_count = all_leads.count()
+    today_leads_count = all_leads.filter(created_at__date=today).count()
+    this_month_leads = all_leads.filter(created_at__year=now.year, created_at__month=now.month)
+    this_month_leads_count = this_month_leads.count()
+
+    worked_upon_count = all_leads.exclude(status__iexact="Open").count()
+    converted_count = all_leads.filter(status__iexact="Converted").count()
+    converted_pct = round((converted_count / total_leads_count * 100), 1) if total_leads_count > 0 else 0
+
+    hot_count = all_leads.filter(lead_type__iexact="Hot").count()
+    warm_count = all_leads.filter(lead_type__iexact="Warm").count()
+    cold_count = all_leads.filter(lead_type__iexact="Cold").count()
+
+    recent_leads = all_leads.order_by("-created_at")[:10]
+    urgent_callbacks = all_callbacks.filter(status="Pending").order_by("date_time")[:10]
+    callbacks_count = all_callbacks.count()
+
+    # Executive monthly stats
+    executives_summary = []
+    if is_admin:
+        exec_stats = this_month_leads.values("created_by__first_name", "created_by__last_name", "created_by__email").annotate(count=Count("id")).order_by("-count")[:5]
+        for item in exec_stats:
+            name = f"{item['created_by__first_name'] or ''} {item['created_by__last_name'] or ''}".strip() or item["created_by__email"]
+            executives_summary.append({"name": name, "count": item["count"]})
+    else:
+        executives_summary.append({"name": full_name, "count": this_month_leads_count})
+
     context = {
         "full_name": full_name,
+        "first_name": first_name,
+        "avatar_initial": avatar_initial,
         "username": getattr(user, "username", None) or user.email,
         "email": user.email,
         "role_display": role_disp,
@@ -64,8 +117,48 @@ def dashboard_view(request):
         "phone": getattr(user, "phone", "Not Provided"),
         "email_verified": getattr(user, "is_email_verified", True),
         "last_login": user.last_login,
+        "access_token": access_token,
+        "active_tab": tab,
+        # Metrics
+        "total_leads_count": total_leads_count,
+        "today_leads_count": today_leads_count,
+        "this_month_leads_count": this_month_leads_count,
+        "target_leads_count": 100,
+        "worked_upon_count": worked_upon_count,
+        "converted_count": converted_count,
+        "converted_pct": converted_pct,
+        "hot_count": hot_count,
+        "warm_count": warm_count,
+        "cold_count": cold_count,
+        "recent_leads": recent_leads,
+        "urgent_callbacks": urgent_callbacks,
+        "callbacks_count": callbacks_count,
+        "executives_summary": executives_summary,
+        "today_formatted": now.strftime("%a, %d %b, %Y"),
+        "time_formatted": now.strftime("%I:%M %p"),
     }
     return render(request, "dashboard.html", context)
+
+
+@login_required(login_url="login")
+def leads_manage_web_view(request):
+    if request.headers.get("Accept", "").startswith("application/json") or request.content_type == "application/json":
+        return LeadCreateAPIView.as_view()(request)
+    return dashboard_view(request, active_tab="leads_manage")
+
+
+@login_required(login_url="login")
+def leads_add_web_view(request):
+    if request.headers.get("Accept", "").startswith("application/json") or request.content_type == "application/json":
+        return LeadCreateAPIView.as_view()(request)
+    return dashboard_view(request, active_tab="leads_add")
+
+
+@login_required(login_url="login")
+def callbacks_web_view(request, lead_id=None):
+    if request.headers.get("Accept", "").startswith("application/json") or request.content_type == "application/json":
+        return ScheduleCallbackListCreateAPIView.as_view()(request, lead_id=lead_id)
+    return dashboard_view(request, active_tab="callbacks")
 
 
 # Signup API
@@ -391,6 +484,10 @@ class LeadCreateAPIView(APIView):
         else:
             leads = Lead.objects.filter(created_by=request.user)
 
+        generated_by_param = request.query_params.get("generated_by")
+        if generated_by_param and generated_by_param.lower() in ["me", "my"]:
+            leads = leads.filter(created_by=request.user)
+
         # 1. Multi-Field Elastic Search (?search= or ?q=)
         search_query = request.query_params.get("search") or request.query_params.get("q")
         if search_query:
@@ -653,6 +750,20 @@ class ScheduleCallbackListCreateAPIView(APIView):
             callbacks = ScheduleCallback.objects.filter(
                 Q(type="Public") | Q(created_by=user) | Q(lead__created_by=user)
             )
+
+        # Filter: Whole team vs My callbacks
+        scope = request.query_params.get("scope") or request.query_params.get("filter")
+        my_callbacks = request.query_params.get("my_callbacks")
+        created_by_param = request.query_params.get("created_by")
+
+        if (
+            (my_callbacks and my_callbacks.lower() in ["true", "1", "yes"])
+            or (scope and scope.lower() in ["my", "me", "my_callbacks", "personal"])
+            or (created_by_param and created_by_param.lower() in ["me", "my"])
+        ):
+            callbacks = callbacks.filter(created_by=user)
+        elif created_by_param and created_by_param.isdigit():
+            callbacks = callbacks.filter(created_by_id=int(created_by_param))
 
         # 1. Filter by Lead (from URL or Query Param)
         lead_query = lead_id or request.query_params.get("lead_id") or request.query_params.get("lead")

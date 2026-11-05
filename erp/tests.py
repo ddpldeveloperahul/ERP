@@ -482,6 +482,42 @@ class ScheduleCallbackAPITests(TestCase):
         self.assertEqual(search_res.status_code, status.HTTP_200_OK)
         self.assertEqual(search_res.data["count"], 1)
 
+    def test_filter_my_callbacks(self):
+        self.client.force_authenticate(user=self.user)
+        # Create callback by self.user
+        self.client.post(self.callbacks_url, self.valid_callback_payload, format="json")
+
+        # Create another user and another public callback
+        other_user = User.objects.create_user(
+            email="otheragent@drdesigntech.com",
+            password="OtherPassword@123",
+            first_name="Other",
+            last_name="Agent",
+            role="LEAD_GEN",
+            is_active=True,
+            is_email_verified=True,
+        )
+        ScheduleCallback.objects.create(
+            lead=self.lead,
+            phone="+91 9999999999",
+            date_time="2026-11-15 10:00:00",
+            type="Public",
+            notes="Other agent callback",
+            status="Pending",
+            created_by=other_user,
+        )
+
+        # Whole team view (returns at least 2)
+        res_all = self.client.get(self.callbacks_url)
+        self.assertEqual(res_all.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(res_all.data["count"], 2)
+
+        # My callbacks view (returns only callbacks by self.user)
+        res_my = self.client.get(f"{self.callbacks_url}?scope=my")
+        self.assertEqual(res_my.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_my.data["count"], 1)
+        self.assertEqual(res_my.data["data"][0]["client_name"], "David Lune")
+
     def test_update_callback(self):
         self.client.force_authenticate(user=self.user)
         create_res = self.client.post(self.callbacks_url, self.valid_callback_payload, format="json")

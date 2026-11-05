@@ -2,6 +2,9 @@ from django.urls import path
 from erp.views import (
     home,
     dashboard_view,
+    leads_manage_web_view,
+    leads_add_web_view,
+    callbacks_web_view,
     SignupAPIView,
     VerifyOTPAPIView,
     ResendOTPAPIView,
@@ -60,8 +63,8 @@ urlpatterns = [
     path("api/leads/<int:pk>/delete/", LeadDetailAPIView.as_view(), name="api_lead_delete"),
 
     # Web / Alias paths
-    path("leads/", LeadCreateAPIView.as_view(), name="leads"),
-    path("leads/add/", LeadCreateAPIView.as_view(), name="add_lead"),
+    path("leads/", leads_manage_web_view, name="leads"),
+    path("leads/add/", leads_add_web_view, name="add_lead"),
     path("leads/<int:pk>/", LeadDetailAPIView.as_view(), name="lead_detail"),
     path("leads/<int:pk>/update/", LeadDetailAPIView.as_view(), name="lead_update"),
     path("leads/<int:pk>/delete/", LeadDetailAPIView.as_view(), name="lead_delete"),
@@ -75,8 +78,8 @@ urlpatterns = [
     path("api/leads/<int:lead_id>/callbacks/", ScheduleCallbackListCreateAPIView.as_view(), name="api_lead_callbacks"),
 
     # Web / Alias paths
-    path("callbacks/", ScheduleCallbackListCreateAPIView.as_view(), name="callbacks"),
-    path("callbacks/schedule/", ScheduleCallbackListCreateAPIView.as_view(), name="schedule_callback"),
+    path("callbacks/", callbacks_web_view, name="callbacks"),
+    path("callbacks/schedule/", callbacks_web_view, name="schedule_callback"),
     path("callbacks/<int:pk>/", ScheduleCallbackDetailAPIView.as_view(), name="callback_detail"),
     path("callbacks/<int:pk>/update/", ScheduleCallbackDetailAPIView.as_view(), name="callback_update"),
     path("callbacks/<int:pk>/delete/", ScheduleCallbackDetailAPIView.as_view(), name="callback_delete"),

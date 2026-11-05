@@ -3,320 +3,3180 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login Successful - DR. DESIGN PVT. LTD.</title>
+  <title>DR. DESIGN™ LEADS - CRM Portal</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
   <style>
+    :root {
+      --bg-dark-top: #171126;
+      --bg-dark-sidebar: #1f1632;
+      --bg-sidebar-active: #4a2d67;
+      --bg-sidebar-hover: rgba(255, 255, 255, 0.07);
+      --bg-main: #f3f5f9;
+      --bg-card: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --text-sidebar: #c7c3d6;
+      --primary-orange: #f97316;
+      --primary-orange-hover: #ea580c;
+      --primary-blue: #2563eb;
+      --primary-green: #16a34a;
+      --primary-green-hover: #15803d;
+      --accent-purple: #7c3aed;
+      --border-color: #e2e8f0;
+      --border-dark: rgba(255, 255, 255, 0.08);
+      --sidebar-width: 250px;
+      --topbar-height: 60px;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     }
 
     body {
-      background: radial-gradient(circle at 50% 30%, #151a24 0%, #0d1016 70%, #080a0e 100%);
-      color: #f1f5f9;
+      background-color: var(--bg-main);
+      color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
+      overflow-x: hidden;
     }
 
-    .brand-header {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 32px;
-    }
-
-    .brand-logo-box {
-      width: 46px;
-      height: 46px;
-      background: #ffffff;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-      padding: 5px;
-    }
-
-    .brand-logo-box svg {
-      width: 100%;
-      height: 100%;
-    }
-
-    .brand-text h1 {
-      font-size: 14px;
-      font-weight: 800;
-      letter-spacing: 1.5px;
+    /* =========================================================
+       TOP NAVIGATION BAR
+       ========================================================= */
+    .topbar {
+      height: var(--topbar-height);
+      background-color: var(--bg-dark-top);
       color: #ffffff;
-      text-transform: uppercase;
-      line-height: 1.2;
-    }
-
-    .brand-text span {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 2px;
-      color: #10b981;
-      text-transform: uppercase;
-    }
-
-    /* SUCCESS CARD */
-    .success-card {
-      background: #12161f;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 20px;
-      padding: 40px 44px;
-      max-width: 540px;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 80px rgba(16, 185, 129, 0.08);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .success-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #059669 0%, #10b981 50%, #34d399 100%);
-    }
-
-    /* SUCCESS ICON */
-    .icon-wrapper {
-      width: 72px;
-      height: 72px;
-      border-radius: 50%;
-      background: rgba(16, 185, 129, 0.15);
-      border: 2px solid rgba(16, 185, 129, 0.4);
       display: flex;
       align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-      color: #10b981;
-      box-shadow: 0 0 30px rgba(16, 185, 129, 0.25);
-    }
-
-    .icon-wrapper svg {
-      width: 38px;
-      height: 38px;
-    }
-
-    .success-title {
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      color: #ffffff;
-      margin-bottom: 6px;
-    }
-
-    .success-subtitle {
-      font-size: 14px;
-      color: #94a3b8;
-      margin-bottom: 24px;
-      line-height: 1.5;
-    }
-
-    /* USER DETAILS BOX */
-    .details-box {
-      background: #171c26;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 12px;
-      padding: 16px 20px;
-      text-align: left;
-      margin-bottom: 24px;
-    }
-
-    .detail-row {
-      display: flex;
       justify-content: space-between;
+      padding: 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    .topbar-left {
+      display: flex;
       align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      font-size: 13.5px;
+      gap: 12px;
     }
 
-    .detail-row:last-child {
-      border-bottom: none;
+    .brand-logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: #ffffff;
     }
 
-    .detail-label {
-      color: #64748b;
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: #ffffff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .brand-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-leads {
+      background: var(--primary-orange);
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .live-clock {
+      font-size: 13px;
       font-weight: 600;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    .detail-value {
+    .btn-top-quick {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-top-quick:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.05);
+    }
+
+    .live-badge {
+      background: #dc2626;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 0 10px rgba(220, 38, 38, 0.4);
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      background: #ffffff;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .bell-icon {
+      color: #fbbf24;
+      cursor: pointer;
+      font-size: 16px;
+      position: relative;
+    }
+
+    .user-avatar-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary-orange);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      position: relative;
+    }
+
+    .user-dropdown {
+      position: absolute;
+      top: 48px;
+      right: 15px;
+      background: #ffffff;
+      color: var(--text-main);
+      width: 230px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border-color);
+      display: none;
+      flex-direction: column;
+      padding: 12px;
+      z-index: 200;
+    }
+
+    .user-dropdown.show {
+      display: flex;
+    }
+
+    .user-dropdown-info {
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 8px;
+    }
+
+    .user-dropdown-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .user-dropdown-email {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      word-break: break-all;
+    }
+
+    .user-dropdown-role {
+      display: inline-block;
+      margin-top: 5px;
+      background: #e0e7ff;
+      color: #4338ca;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .btn-dropdown-logout {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: #dc2626;
+      background: #fee2e2;
+      border: none;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .btn-dropdown-logout:hover {
+      background: #fca5a5;
+    }
+
+    /* =========================================================
+       APP WRAPPER & SIDEBAR
+       ========================================================= */
+    .app-container {
+      display: flex;
+      flex: 1;
+      min-height: calc(100vh - var(--topbar-height));
+      position: relative;
+    }
+
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: var(--bg-dark-sidebar);
+      color: var(--text-sidebar);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .sidebar.collapsed {
+      width: 68px;
+    }
+
+    .sidebar-menu {
+      padding: 16px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      color: #e2e8f0;
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .menu-item:hover {
+      background-color: var(--bg-sidebar-hover);
+      color: #ffffff;
+    }
+
+    .menu-item.active {
+      background-color: var(--bg-sidebar-active);
       color: #ffffff;
       font-weight: 700;
     }
 
-    .role-badge {
-      background: #0ea76e;
-      color: #ffffff;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 11.5px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }
-
-    /* ACTION BUTTONS */
-    .actions-group {
+    .menu-icon {
+      width: 18px;
+      height: 18px;
       display: flex;
-      flex-direction: column;
-      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }
 
-    .btn-logout {
-      width: 100%;
-      background: #ef4444;
-      color: #ffffff;
-      border: none;
-      padding: 13px 24px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 800;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
+    .menu-title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar.collapsed .menu-title,
+    .sidebar.collapsed .menu-arrow,
+    .sidebar.collapsed .submenu {
+      display: none !important;
+    }
+
+    .menu-arrow {
+      font-size: 11px;
+      transition: transform 0.2s;
+    }
+
+    .menu-group.open .menu-arrow {
+      transform: rotate(180deg);
+    }
+
+    .submenu {
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      padding-left: 22px;
+      margin-top: 2px;
+    }
+
+    .menu-group.open .submenu {
+      display: flex;
+    }
+
+    .submenu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      color: #cbd5e1;
+      font-size: 12.5px;
+      font-weight: 500;
       cursor: pointer;
       text-decoration: none;
+      transition: all 0.15s;
+    }
+
+    .submenu-item:hover {
+      background: var(--bg-sidebar-hover);
+      color: #ffffff;
+    }
+
+    .submenu-item.active {
+      color: #ffffff;
+      background: rgba(124, 58, 237, 0.45);
+      font-weight: 700;
+    }
+
+    .sidebar-bottom {
+      padding: 14px 12px;
+      border-top: 1px solid var(--border-dark);
+    }
+
+    .btn-collapse {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #94a3b8;
+      font-size: 12.5px;
+      font-weight: 600;
+      background: transparent;
+      border: none;
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-collapse:hover {
+      background: var(--bg-sidebar-hover);
+      color: #ffffff;
+    }
+
+    /* =========================================================
+       MAIN CONTENT VIEWPORT & TAB PANELS
+       ========================================================= */
+    .main-content {
+      flex: 1;
+      background: var(--bg-main);
+      padding: 22px 28px 80px 28px;
+      overflow-y: auto;
+      min-width: 0;
+    }
+
+    .tab-panel {
+      display: none;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* =========================================================
+       TAB 1: DASHBOARD VIEW
+       ========================================================= */
+    .welcome-card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 18px 24px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+      margin-bottom: 20px;
+    }
+
+    .welcome-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .sun-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: #fef3c7;
+      color: #d97706;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .welcome-title {
+      font-size: 19px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .welcome-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .welcome-right {
+      text-align: right;
+    }
+
+    .welcome-time {
+      font-size: 17px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .welcome-date {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* 4 Stat Cards Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      padding: 18px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 4px;
+    }
+
+    .stat-card.orange::before { background: var(--primary-orange); }
+    .stat-card.blue::before { background: var(--primary-blue); }
+    .stat-card.green::before { background: var(--primary-green); }
+    .stat-card.red::before { background: #ef4444; }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .stat-progress-bar {
+      height: 5px;
+      background: #e2e8f0;
+      border-radius: 10px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .stat-progress-fill {
+      height: 100%;
+      background: var(--primary-blue);
+      border-radius: 10px;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+
+    /* 2-Column Dashboard Layout */
+    .dashboard-split {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 20px;
+    }
+
+    .section-header-tag {
+      font-size: 13px;
+      font-weight: 800;
+      color: #1e293b;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .green-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--primary-green);
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* Urgent To-Do Cards */
+    .urgent-block {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .urgent-banner {
+      background: #2563eb;
+      color: #ffffff;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .urgent-banner-title {
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-updated {
+      background: var(--primary-orange);
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 10px;
+    }
+
+    .urgent-banner-link {
+      color: #ffffff;
+      font-size: 12.5px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: opacity 0.2s;
+    }
+
+    .urgent-banner-link:hover {
+      opacity: 0.85;
+      text-decoration: underline;
+    }
+
+    .urgent-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+
+    .urgent-table th {
+      background: #f8fafc;
+      color: var(--text-muted);
+      font-weight: 700;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 11.5px;
+      text-transform: uppercase;
+    }
+
+    .urgent-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+    }
+
+    .urgent-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .empty-placeholder {
+      padding: 28px;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* Badges */
+    .badge-pill {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+
+    .badge-pill.hot { background: #fee2e2; color: #dc2626; }
+    .badge-pill.warm { background: #fef3c7; color: #d97706; }
+    .badge-pill.cold { background: #ede9fe; color: #7c3aed; }
+    .badge-pill.in-progress { background: #dbeafe; color: #1d4ed8; }
+    .badge-pill.open { background: #fee2e2; color: #b91c1c; }
+    .badge-pill.converted { background: #dcfce7; color: #15803d; }
+    .badge-pill.public { background: #e0f2fe; color: #0369a1; }
+    .badge-pill.private { background: #f3e8ff; color: #6b21a8; }
+    .badge-pill.completed { background: #dcfce7; color: #15803d; }
+    .badge-pill.pending { background: #fef3c7; color: #b45309; }
+
+    /* Right Column: Chart & Executive */
+    .chart-card {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .chart-wrap {
+      max-width: 240px;
+      margin: 10px auto;
+      position: relative;
+    }
+
+    .chart-legend {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 14px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .chart-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .executives-card {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      padding: 18px;
+    }
+
+    .executive-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 13px;
+    }
+
+    .executive-row:last-child { border-bottom: none; }
+    .exec-name { font-weight: 600; color: #334155; }
+    .exec-count { font-weight: 700; color: #0f172a; background: #f1f5f9; padding: 2px 8px; border-radius: 6px; }
+
+    /* =========================================================
+       TAB 2: ADD NEW LEAD
+       ========================================================= */
+    .page-header-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .page-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .page-subheading {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #64748b;
+      margin-bottom: 18px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-card {
+      background: #ffffff;
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+      padding: 28px 32px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    }
+
+    .form-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px 24px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.span-2 { grid-column: span 2; }
+    .form-group.span-3 { grid-column: span 3; }
+
+    .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .form-label .req {
+      color: #ef4444;
+      font-weight: 800;
+    }
+
+    .form-control {
+      width: 100%;
+      height: 42px;
+      padding: 8px 14px;
+      font-size: 13.5px;
+      color: #0f172a;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    textarea.form-control {
+      height: 90px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .form-hint {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .char-counter {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    .char-counter.valid { color: var(--primary-green); }
+    .char-counter.invalid { color: #ef4444; }
+
+    .form-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .btn {
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      box-shadow: 0 4px 18px rgba(239, 68, 68, 0.35);
-      transition: all 0.2s ease;
+      transition: all 0.2s;
+      border: none;
     }
 
-    .btn-logout:hover {
-      background: #dc2626;
-      box-shadow: 0 6px 24px rgba(239, 68, 68, 0.5);
-      transform: translateY(-1px);
+    .btn-green {
+      background: var(--primary-green);
+      color: #ffffff;
     }
 
-    .footer-copy {
-      margin-top: 28px;
-      font-size: 11px;
+    .btn-green:hover {
+      background: var(--primary-green-hover);
+      box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+    }
+
+    .btn-orange {
+      background: var(--primary-orange);
+      color: #ffffff;
+    }
+
+    .btn-orange:hover {
+      background: var(--primary-orange-hover);
+      box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+    }
+
+    .btn-white {
+      background: #ffffff;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+    }
+
+    .btn-white:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+
+    .btn-purple {
+      background: #1f1632;
+      color: #ffffff;
+    }
+
+    .btn-purple:hover {
+      background: #312152;
+    }
+
+    /* =========================================================
+       TAB 3: MANAGE GENERATED LEADS
+       ========================================================= */
+    .summary-bar-card {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      padding: 16px 20px;
+      margin-bottom: 18px;
+    }
+
+    .summary-headline {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 10px;
+    }
+
+    .multi-progress-track {
+      height: 10px;
+      background: #e2e8f0;
+      border-radius: 8px;
+      display: flex;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .progress-seg.purple { background: #8b5cf6; }
+    .progress-seg.orange { background: #f59e0b; }
+    .progress-seg.green { background: #10b981; }
+
+    .progress-legend {
+      display: flex;
+      gap: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* Filters Bar */
+    .filter-card {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      padding: 18px 20px;
+      margin-bottom: 20px;
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px 16px;
+      align-items: flex-end;
+    }
+
+    .filter-btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Table Component */
+    .table-container-card {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      padding: 16px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .entries-select-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .entries-select {
+      height: 32px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      font-size: 12.5px;
+      outline: none;
+    }
+
+    .table-search-input {
+      height: 34px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      font-size: 13px;
+      width: 220px;
+      outline: none;
+    }
+
+    .table-search-input:focus {
+      border-color: var(--primary-blue);
+    }
+
+    .data-table-wrap {
+      overflow-x: auto;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      min-width: 950px;
+    }
+
+    .data-table th {
+      background: #f8fafc;
       color: #475569;
-      letter-spacing: 1px;
+      font-weight: 700;
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 11px;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .data-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+      vertical-align: middle;
+    }
+
+    .data-table tbody tr:hover {
+      background: #fafafa;
+    }
+
+    .lead-client-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .lead-company-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #1d4ed8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .lead-sub-creator {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    /* Action Dropdown */
+    .dropdown-action {
+      position: relative;
+      display: inline-block;
+    }
+
+    .btn-action-trigger {
+      padding: 5px 10px;
+      border-radius: 6px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-action-trigger:hover {
+      background: #f1f5f9;
+    }
+
+    .action-menu {
+      position: absolute;
+      right: 0;
+      top: 32px;
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      width: 170px;
+      padding: 6px 0;
+      display: none;
+      flex-direction: column;
+      z-index: 50;
+    }
+
+    .action-menu.show { display: flex; }
+
+    .action-menu-item {
+      padding: 8px 14px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #334155;
+      text-decoration: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .action-menu-item:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .action-menu-item.danger {
+      color: #dc2626;
+    }
+
+    .action-menu-item.danger:hover {
+      background: #fee2e2;
+    }
+
+    /* Table Pagination */
+    .table-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 16px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+
+    .pagination-btns {
+      display: flex;
+      gap: 6px;
+    }
+
+    .page-btn {
+      min-width: 30px;
+      height: 30px;
+      padding: 0 8px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .page-btn.active {
+      background: var(--primary-blue);
+      border-color: var(--primary-blue);
+      color: #ffffff;
+    }
+
+    .page-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* =========================================================
+       TAB 4: CALLBACK REQUESTS
+       ========================================================= */
+    .cb-top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* =========================================================
+       MODALS
+       ========================================================= */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(2px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal-backdrop.show { display: flex; }
+
+    .modal-box {
+      background: #ffffff;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 540px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      animation: modalSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalSlide {
+      from { transform: scale(0.95) translateY(10px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .btn-modal-close {
+      background: transparent;
+      border: none;
+      font-size: 18px;
+      color: #94a3b8;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .btn-modal-close:hover { color: #0f172a; }
+
+    .modal-body {
+      padding: 22px;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .modal-grid .span-2 { grid-column: span 2; }
+
+    .modal-footer {
+      padding: 14px 22px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-start;
+      background: #f8fafc;
+    }
+
+    /* =========================================================
+       FLOATING ACTION BUTTONS (FAB)
+       ========================================================= */
+    .fab-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      gap: 12px;
+      z-index: 99;
+    }
+
+    .fab-btn-wrap {
+      position: relative;
+    }
+
+    .fab-badge-new {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #dc2626;
+      color: #ffffff;
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      pointer-events: none;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .fab-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #10b981;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .fab-btn:hover {
+      transform: translateY(-3px) scale(1.05);
+      background: #059669;
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55);
+    }
+
+    /* =========================================================
+       TOAST ALERTS
+       ========================================================= */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 2000;
+      pointer-events: none;
+    }
+
+    .toast {
+      padding: 12px 18px;
+      border-radius: 8px;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+      pointer-events: auto;
+      animation: toastIn 0.3s forwards, toastOut 0.3s 3.5s forwards;
+    }
+
+    .toast.success { background: #16a34a; }
+    .toast.error { background: #dc2626; }
+    .toast.info { background: #2563eb; }
+
+    @keyframes toastIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes toastOut {
+      from { transform: translateY(0); opacity: 1; }
+      to { transform: translateY(20px); opacity: 0; }
+    }
+
+    @media (max-width: 1024px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .dashboard-split { grid-template-columns: 1fr; }
+      .form-grid-3 { grid-template-columns: 1fr; }
+      .filter-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; height: calc(100vh - var(--topbar-height)); z-index: 95; left: -260px; }
+      .sidebar.mobile-open { left: 0; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .filter-grid { grid-template-columns: 1fr; }
+      .main-content { padding: 16px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Brand Logo Header -->
-  <div class="brand-header">
-    <div class="brand-logo-box">
-      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="24" cy="24" r="16" stroke="#047857" stroke-width="2.5" stroke-dasharray="2 2"/>
-        <path d="M24 10V38M10 24H38" stroke="#047857" stroke-width="1.8"/>
-        <path d="M16 34L24 14L32 34" stroke="#047857" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M19 28H29" stroke="#0ea76e" stroke-width="2.5" stroke-linecap="round"/>
-      </svg>
-    </div>
-    <div class="brand-text">
-      <h1>DR. DESIGN PVT. LTD.</h1>
-      <span>ERP PORTAL</span>
-    </div>
-  </div>
-
-  <!-- Login Successful Card (100% Dynamic from Database) -->
-  <div class="success-card">
-    
-    <!-- Success Icon -->
-    <div class="icon-wrapper">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 6L9 17l-5-5"/>
-      </svg>
-    </div>
-
-    <!-- Titles -->
-    <h2 class="success-title">Login Successful!</h2>
-    <p class="success-subtitle">
-      Welcome back, <strong>{{ full_name }}</strong>!<br>
-      You are authenticated in the DR. Design ERP System.
-    </p>
-
-    <!-- User Information Box (All Dynamic from DB) -->
-    <div class="details-box">
-      <div class="detail-row">
-        <span class="detail-label">Status</span>
-        <span class="detail-value" style="color: #10b981; display:flex; align-items:center; gap:6px;">
-          <span style="width:8px; height:8px; background:#10b981; border-radius:50%; display:inline-block;"></span>
-          Active Session
-        </span>
-      </div>
-
-      <div class="detail-row">
-        <span class="detail-label">Username</span>
-        <span class="detail-value">{{ username }}</span>
-      </div>
-
-      <div class="detail-row">
-        <span class="detail-label">Email</span>
-        <span class="detail-value">{{ email }}</span>
-      </div>
-
-      <div class="detail-row">
-        <span class="detail-label">Role / Department</span>
-        <span class="role-badge">{{ role_display }}</span>
-      </div>
-
-      <div class="detail-row">
-        <span class="detail-label">Employee ID</span>
-        <span class="detail-value">{{ employee_id }}</span>
-      </div>
-
-      {% if phone and phone != 'Not Provided' %}
-      <div class="detail-row">
-        <span class="detail-label">Phone</span>
-        <span class="detail-value">{{ phone }}</span>
-      </div>
-      {% endif %}
-
-      <div class="detail-row">
-        <span class="detail-label">Email Verified</span>
-        <span class="detail-value" style="color: {% if email_verified %}#10b981{% else %}#f59e0b{% endif %};">
-          {% if email_verified %}✓ Verified{% else %}Pending Verification{% endif %}
-        </span>
-      </div>
-
-      {% if last_login %}
-      <div class="detail-row">
-        <span class="detail-label">Last Login</span>
-        <span class="detail-value" style="font-size:12px; color:#94a3b8;">{{ last_login|date:"d M Y, H:i" }}</span>
-      </div>
-      {% endif %}
-    </div>
-
-    <!-- Actions: Logout -->
-    <div class="actions-group">
-      <a href="{% url 'erp_logout' %}" class="btn-logout">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-          <polyline points="16 17 21 12 16 7"></polyline>
-          <line x1="21" y1="12" x2="9" y2="12"></line>
-        </svg>
-        Logout
+  <!-- =========================================================
+       TOP NAVIGATION BAR
+       ========================================================= -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <a href="javascript:void(0)" onclick="switchTab('dashboard')" class="brand-logo-wrap">
+        <div class="brand-icon">
+          <!-- Globe / World Icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+        </div>
+        <div class="brand-title">
+          <span>DR. DESIGN™</span>
+          <span class="badge-leads">LEADS</span>
+        </div>
       </a>
     </div>
 
+    <div class="topbar-right">
+      <div class="live-clock" id="topLiveClock">
+        {{ time_formatted }}
+      </div>
+
+      <button class="btn-top-quick" onclick="resetLeadForm(); switchTab('leads_add')" title="Add New Lead">
+        +
+      </button>
+
+      <div class="live-badge">
+        <div class="live-dot"></div>
+        LIVE
+      </div>
+
+      <div class="bell-icon" title="Notifications">
+        🔔
+      </div>
+
+      <div class="user-avatar-btn" id="avatarBtn" onclick="toggleUserDropdown(event)" title="{{ full_name }}">
+        {{ avatar_initial }}
+      </div>
+    </div>
+  </header>
+
+  <!-- User Profile Dropdown -->
+  <div class="user-dropdown" id="userDropdown">
+    <div class="user-dropdown-info">
+      <div class="user-dropdown-name">{{ full_name }}</div>
+      <div class="user-dropdown-email">{{ email }}</div>
+      <div class="user-dropdown-role">{{ role_display }}</div>
+    </div>
+    <a href="{% url 'logout' %}" class="btn-dropdown-logout">
+      ⎋ Sign Out
+    </a>
   </div>
 
-  <div class="footer-copy">
-    © 2026 DR. DESIGN PVT. LTD. ALL RIGHTS RESERVED.
+  <!-- =========================================================
+       APP WRAPPER (SIDEBAR + MAIN CONTENT)
+       ========================================================= -->
+  <div class="app-container">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar" id="appSidebar">
+      <div class="sidebar-menu">
+        
+        <!-- 1. Dashboard -->
+        <a href="javascript:void(0)" class="menu-item {% if active_tab == 'dashboard' %}active{% endif %}" id="nav-dashboard" onclick="switchTab('dashboard')">
+          <div class="menu-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </div>
+          <span class="menu-title">Dashboard</span>
+        </a>
+
+        <!-- 2. Leads Group (Accordion) -->
+        <div class="menu-group open" id="nav-group-leads">
+          <div class="menu-item" onclick="toggleMenu('nav-group-leads')">
+            <div class="menu-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <span class="menu-title">Leads</span>
+            <span class="menu-arrow">▾</span>
+          </div>
+
+          <div class="submenu">
+            <a href="javascript:void(0)" class="submenu-item {% if active_tab == 'leads_add' %}active{% endif %}" id="nav-leads_add" onclick="resetLeadForm(); switchTab('leads_add')">
+              <span>⊕</span>
+              <span>Add New Leads</span>
+            </a>
+            <a href="javascript:void(0)" class="submenu-item {% if active_tab == 'leads_manage' %}active{% endif %}" id="nav-leads_manage" onclick="switchTab('leads_manage')">
+              <span>≡</span>
+              <span>Manage Leads</span>
+            </a>
+            <a href="javascript:void(0)" class="submenu-item {% if active_tab == 'callbacks' %}active{% endif %}" id="nav-callbacks" onclick="switchTab('callbacks')">
+              <span>📞</span>
+              <span>Callbacks</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 3. Department Reports -->
+        <div class="menu-group" id="nav-group-reports">
+          <div class="menu-item" onclick="toggleMenu('nav-group-reports')">
+            <div class="menu-icon">📊</div>
+            <span class="menu-title">Department Reports</span>
+            <span class="menu-arrow">▸</span>
+          </div>
+          <div class="submenu">
+            <a href="javascript:void(0)" class="submenu-item" onclick="showToast('Department Reports feature coming soon.', 'info')">
+              <span>Overview</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 4. Email Marketing -->
+        <div class="menu-group" id="nav-group-email">
+          <div class="menu-item" onclick="toggleMenu('nav-group-email')">
+            <div class="menu-icon">✉️</div>
+            <span class="menu-title">Email Marketing</span>
+            <span class="menu-arrow">▸</span>
+          </div>
+          <div class="submenu">
+            <a href="javascript:void(0)" class="submenu-item" onclick="showToast('Email Marketing campaigns portal coming soon.', 'info')">
+              <span>Campaigns</span>
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="sidebar-bottom">
+        <button class="btn-collapse" onclick="toggleSidebarCollapse()">
+          <span>«</span>
+          <span class="menu-title">Collapse Sidebar</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN VIEWPORT -->
+    <main class="main-content">
+      
+      <!-- =========================================================
+           TAB 1: DASHBOARD OVERVIEW
+           ========================================================= -->
+      <section class="tab-panel {% if active_tab == 'dashboard' %}active{% endif %}" id="tab-dashboard">
+        
+        <!-- Welcome Greeting Banner -->
+        <div class="welcome-card">
+          <div class="welcome-left">
+            <div class="sun-icon-box">☀️</div>
+            <div>
+              <h2 class="welcome-title">Good Morning, {{ first_name }}</h2>
+              <p class="welcome-sub">Today's target: 4 leads · you have <strong id="dash-sub-today">{{ today_leads_count }}</strong> so far</p>
+            </div>
+          </div>
+          <div class="welcome-right">
+            <div class="welcome-time" id="dashLiveTime">{{ time_formatted }}</div>
+            <div class="welcome-date">{{ today_formatted }}</div>
+          </div>
+        </div>
+
+        <!-- Top 4 Metric Cards -->
+        <div class="stats-grid">
+          <div class="stat-card orange">
+            <div class="stat-label">Team leads today</div>
+            <div class="stat-value" id="stat-team-today">{{ today_leads_count }}</div>
+          </div>
+
+          <div class="stat-card blue">
+            <div class="stat-label">This month / target</div>
+            <div class="stat-value" id="stat-month-target">{{ this_month_leads_count }} / {{ target_leads_count }}</div>
+            <div class="stat-progress-bar">
+              <div class="stat-progress-fill" id="stat-month-progress" style="width: {% widthratio this_month_leads_count target_leads_count 100 %}%;"></div>
+            </div>
+          </div>
+
+          <div class="stat-card green">
+            <div class="stat-label">Worked upon by sales</div>
+            <div class="stat-value" id="stat-worked-upon">{{ worked_upon_count }} / {{ total_leads_count }}</div>
+          </div>
+
+          <div class="stat-card red">
+            <div class="stat-label">Converted</div>
+            <div class="stat-value" id="stat-converted">{{ converted_count }} ({{ converted_pct }}%)</div>
+          </div>
+        </div>
+
+        <!-- 2-Column Dashboard Layout -->
+        <div class="dashboard-split">
+          
+          <!-- LEFT COLUMN: Urgent To-Dos -->
+          <div>
+            <div class="section-header-tag">
+              <span class="green-dot"></span>
+              TODAY'S URGENT TO-DOS
+            </div>
+
+            <!-- Urgent Block 1: Callbacks -->
+            <div class="urgent-block">
+              <div class="urgent-banner">
+                <div class="urgent-banner-title">
+                  <span>📞 Callback Requests (<span id="dash-cb-count">{{ urgent_callbacks|length }}</span>)</span>
+                  <span class="badge-updated">Updated</span>
+                </div>
+                <a href="javascript:void(0)" class="urgent-banner-link" onclick="switchTab('callbacks')">
+                  View Callback ↗
+                </a>
+              </div>
+
+              <table class="urgent-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>NAME</th>
+                    <th>CALLBACK ID</th>
+                    <th>DATE & TIME</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-callbacks-tbody">
+                  {% if urgent_callbacks %}
+                    {% for cb in urgent_callbacks %}
+                    <tr>
+                      <td>{{ forloop.counter }}</td>
+                      <td><strong>{{ cb.client_name|default:cb.lead.client_full_name }}</strong></td>
+                      <td>CB-{{ cb.id|stringformat:"04d" }}</td>
+                      <td>{{ cb.date_time|date:"d-m-Y h:i A" }}</td>
+                    </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="4" class="empty-placeholder">No Data Exists</td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Urgent Block 2: Recently Generated Leads -->
+            <div class="urgent-block">
+              <div class="urgent-banner">
+                <div class="urgent-banner-title">
+                  <span>📄 Recently Generated Leads</span>
+                </div>
+                <a href="javascript:void(0)" class="urgent-banner-link" onclick="switchTab('leads_manage')">
+                  Manage Leads ↗
+                </a>
+              </div>
+
+              <table class="urgent-table">
+                <thead>
+                  <tr>
+                    <th>LEAD</th>
+                    <th>TYPE</th>
+                    <th>PASSED TO</th>
+                    <th>SALES STATUS</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-recent-leads-tbody">
+                  {% if recent_leads %}
+                    {% for lead in recent_leads %}
+                    <tr>
+                      <td>
+                        <strong>{{ lead.client_company_name|default:lead.client_full_name }}</strong>
+                        <div style="font-size: 11px; color: #94a3b8;">{{ lead.created_at|date:"d-m-Y | h:i A" }}</div>
+                      </td>
+                      <td>
+                        <span class="badge-pill {{ lead.lead_type|lower }}">{{ lead.lead_type }}</span>
+                      </td>
+                      <td>{{ first_name }}</td>
+                      <td>
+                        <span class="badge-pill {% if lead.status == 'In Progress' %}in-progress{% elif lead.status == 'Open' %}open{% elif lead.status == 'Converted' %}converted{% else %}warm{% endif %}">
+                          {{ lead.status }}
+                        </span>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="4" class="empty-placeholder">No Leads Generated Yet</td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+
+          <!-- RIGHT COLUMN: Live Leads Pool & Executive Stats -->
+          <div>
+            <div class="section-header-tag">
+              <span class="green-dot"></span>
+              LIVE LEADS POOL
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-wrap">
+                <canvas id="liveLeadsChart"></canvas>
+              </div>
+              <div class="chart-legend">
+                <div class="chart-legend-item">
+                  <span style="color: #10b981;">●</span> Hot (<span id="legend-hot-count">{{ hot_count }}</span>)
+                </div>
+                <div class="chart-legend-item">
+                  <span style="color: #3b82f6;">●</span> Warm (<span id="legend-warm-count">{{ warm_count }}</span>)
+                </div>
+                <div class="chart-legend-item">
+                  <span style="color: #f59e0b;">●</span> Cold (<span id="legend-cold-count">{{ cold_count }}</span>)
+                </div>
+              </div>
+            </div>
+
+            <div class="section-header-tag" style="margin-top: 24px;">
+              <span class="green-dot"></span>
+              LEADS GENERATED THIS MONTH — BY EXECUTIVE
+            </div>
+
+            <div class="executives-card">
+              {% if executives_summary %}
+                {% for exec in executives_summary %}
+                <div class="executive-row">
+                  <span class="exec-name">{{ exec.name }}</span>
+                  <span class="exec-count">{{ exec.count }} leads</span>
+                </div>
+                {% endfor %}
+              {% else %}
+                <div class="empty-placeholder">No executive records found.</div>
+              {% endif %}
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- =========================================================
+           TAB 2: ADD NEW LEAD (FORM)
+           ========================================================= -->
+      <section class="tab-panel {% if active_tab == 'leads_add' %}active{% endif %}" id="tab-leads_add">
+        
+        <div class="page-header-box">
+          <div class="page-title-row">
+            <span style="font-size: 20px;">≡</span>
+            <h1 class="page-title">Leads</h1>
+          </div>
+        </div>
+
+        <div class="page-subheading" id="leadFormSubheading">+ ADD A NEW LEAD</div>
+
+        <div class="form-card">
+          <form id="addLeadForm" onsubmit="handleCreateOrUpdateLead(event)">
+            <input type="hidden" id="editing_lead_id" value="">
+            
+            <div class="form-grid-3">
+              
+              <!-- 1. Client Full Name -->
+              <div class="form-group">
+                <label class="form-label">Client Full Name <span class="req">*</span></label>
+                <input type="text" class="form-control" id="lead_client_full_name" placeholder="Enter client name" required>
+              </div>
+
+              <!-- 2. Client Email ID -->
+              <div class="form-group">
+                <label class="form-label">Client Email ID <span class="req">*</span></label>
+                <input type="email" class="form-control" id="lead_client_email" placeholder="client@company.com" required>
+                <span class="form-hint">Sales uses this email to send the quotation and invoice.</span>
+              </div>
+
+              <!-- 3. Client Company Name -->
+              <div class="form-group">
+                <label class="form-label">Client Company Name <span class="req">*</span></label>
+                <input type="text" class="form-control" id="lead_client_company_name" placeholder="Company Name" required>
+              </div>
+
+              <!-- 4. Client Website Address -->
+              <div class="form-group">
+                <label class="form-label">Client Website Address</label>
+                <input type="text" class="form-control" id="lead_client_website_address" placeholder="https://">
+              </div>
+
+              <!-- 5. Client Is ( Domestic / International ) -->
+              <div class="form-group">
+                <label class="form-label">Client Is ( Domestic / International ) <span class="req">*</span></label>
+                <select class="form-control" id="lead_client_is" required>
+                  <option value="">Select Client Is</option>
+                  <option value="Domestic" selected>Domestic</option>
+                  <option value="International">International</option>
+                </select>
+              </div>
+
+              <!-- 6. Country Name -->
+              <div class="form-group">
+                <label class="form-label">Country Name <span class="req">*</span></label>
+                <select class="form-control" id="lead_country_name" required>
+                  <option value="">Select Country Name</option>
+                  <option value="India" selected>India</option>
+                  <option value="United States">United States</option>
+                  <option value="United Kingdom">United Kingdom</option>
+                  <option value="United Arab Emirates">United Arab Emirates</option>
+                  <option value="Saudi Arabia">Saudi Arabia</option>
+                  <option value="Canada">Canada</option>
+                  <option value="Australia">Australia</option>
+                  <option value="Singapore">Singapore</option>
+                  <option value="Germany">Germany</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <!-- 7. Client Full Address -->
+              <div class="form-group">
+                <label class="form-label">Client Full Address <span class="req">*</span></label>
+                <input type="text" class="form-control" id="lead_client_full_address" placeholder="City, State, Zip" required>
+              </div>
+
+              <!-- 8. Client Contact Number -->
+              <div class="form-group">
+                <label class="form-label">Client Contact Number <span class="req">*</span></label>
+                <input type="text" class="form-control" id="lead_client_contact_number" placeholder="with country code e.g. +91 9876543210" required>
+              </div>
+
+              <!-- 9. Lead Type -->
+              <div class="form-group">
+                <label class="form-label">Lead Type <span class="req">*</span></label>
+                <select class="form-control" id="lead_lead_type" required>
+                  <option value="">Select Lead Type</option>
+                  <option value="Hot">Hot</option>
+                  <option value="Warm" selected>Warm</option>
+                  <option value="Cold">Cold</option>
+                </select>
+              </div>
+
+              <!-- 10. Project Category -->
+              <div class="form-group">
+                <label class="form-label">Project Category <span class="req">*</span></label>
+                <select class="form-control" id="lead_project_category" required>
+                  <option value="">Select Project Category</option>
+                  <option value="Website Design & Development" selected>Website Design & Development</option>
+                  <option value="E-commerce Website">E-commerce Website</option>
+                  <option value="Mobile App Development">Mobile App Development</option>
+                  <option value="Custom Software / ERP / CRM">Custom Software / ERP / CRM</option>
+                  <option value="SEO">SEO</option>
+                  <option value="Social Media Marketing">Social Media Marketing</option>
+                  <option value="Google / Meta Ads">Google / Meta Ads</option>
+                  <option value="Graphic Designing">Graphic Designing</option>
+                  <option value="Video Editing">Video Editing</option>
+                  <option value="UI/UX Design">UI/UX Design</option>
+                  <option value="Website Maintenance">Website Maintenance</option>
+                  <option value="Domain & Hosting">Domain & Hosting</option>
+                </select>
+              </div>
+
+              <!-- 11. Requirement Description -->
+              <div class="form-group span-2">
+                <label class="form-label">Requirement Description <span class="req">*</span></label>
+                <textarea class="form-control" id="lead_requirement_description" placeholder="Define it in minimum 50 characters" oninput="updateCharCount(this)" required></textarea>
+                <div class="char-counter invalid" id="charCounter">0/50 characters</div>
+              </div>
+
+              <!-- 12. Status -->
+              <div class="form-group">
+                <label class="form-label">Status <span class="req">*</span></label>
+                <select class="form-control" id="lead_status" required>
+                  <option value="Open" selected>Open</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Converted">Converted</option>
+                  <option value="Lost">Lost</option>
+                </select>
+              </div>
+
+              <!-- 13. Next Follow Up -->
+              <div class="form-group">
+                <label class="form-label">Next Follow Up <span class="req">*</span></label>
+                <select class="form-control" id="lead_next_follow_up" required>
+                  <option value="Yes" selected>Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+
+              <!-- 14. Lead generated from? -->
+              <div class="form-group">
+                <label class="form-label">Lead generated from? <span class="req">*</span></label>
+                <select class="form-control" id="lead_lead_generated_from" required>
+                  <option value="Calling" selected>Calling</option>
+                  <option value="WhatsApp">WhatsApp</option>
+                  <option value="Email">Email</option>
+                  <option value="Website Enquiry">Website Enquiry</option>
+                  <option value="Social Media">Social Media</option>
+                  <option value="Referral">Referral</option>
+                  <option value="Walk-in">Walk-in</option>
+                  <option value="Freelance Portal">Freelance Portal</option>
+                  <option value="Google Ads">Google Ads</option>
+                </select>
+              </div>
+
+            </div>
+
+            <!-- Form Buttons -->
+            <div class="form-actions">
+              <button type="submit" class="btn btn-green" id="btnSaveLead">
+                <span>✓</span> Save
+              </button>
+              <button type="button" class="btn btn-white" id="btnClearLead" onclick="resetLeadForm()">
+                Clear
+              </button>
+            </div>
+
+          </form>
+        </div>
+
+      </section>
+
+      <!-- =========================================================
+           TAB 3: MANAGE GENERATED LEADS
+           ========================================================= -->
+      <section class="tab-panel {% if active_tab == 'leads_manage' %}active{% endif %}" id="tab-leads_manage">
+        
+        <div class="page-header-box">
+          <div class="page-title-row">
+            <span style="font-size: 20px;">≡</span>
+            <h1 class="page-title">Manage Generated Leads</h1>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn btn-white" onclick="exportLeadsCSV()">
+              ⬇ CSV
+            </button>
+            <button class="btn btn-orange" onclick="resetLeadForm(); switchTab('leads_add')">
+              + Add New Lead
+            </button>
+          </div>
+        </div>
+
+        <!-- Summary Progress Bar -->
+        <div class="summary-bar-card">
+          <div class="summary-headline" id="leadsSummaryHeadline">
+            {{ worked_upon_count }} Worked Upon of {{ total_leads_count }} Till Date Generated Leads & {{ converted_count }} Till Date Converted ({{ converted_pct }}%)
+          </div>
+          <div class="multi-progress-track">
+            <div class="progress-seg purple" id="progSegPurple" style="width: 50%;"></div>
+            <div class="progress-seg orange" id="progSegOrange" style="width: 30%;"></div>
+            <div class="progress-seg green" id="progSegGreen" style="width: 20%;"></div>
+          </div>
+          <div class="progress-legend">
+            <div><span style="color: #8b5cf6;">●</span> Leads Generated</div>
+            <div><span style="color: #f59e0b;">●</span> Leads Worked Upon</div>
+            <div><span style="color: #10b981;">●</span> Leads Converted</div>
+          </div>
+        </div>
+
+        <!-- Filters Form -->
+        <div class="filter-card">
+          <div class="filter-grid">
+            
+            <div class="form-group">
+              <label class="form-label">Prospect Type</label>
+              <select class="form-control" id="filter_client_is">
+                <option value="">Prospect Type</option>
+                <option value="Domestic">Domestic</option>
+                <option value="International">International</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Lead Status</label>
+              <select class="form-control" id="filter_status">
+                <option value="">Lead Status</option>
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Converted">Converted</option>
+                <option value="Lost">Lost</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Lead Type</label>
+              <select class="form-control" id="filter_lead_type">
+                <option value="">All types</option>
+                <option value="Hot">Hot</option>
+                <option value="Warm">Warm</option>
+                <option value="Cold">Cold</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Generated by</label>
+              <select class="form-control" id="filter_generated_by">
+                <option value="all">Whole team</option>
+                <option value="me">My leads</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Start Date</label>
+              <input type="date" class="form-control" id="filter_start_date">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">End Date</label>
+              <input type="date" class="form-control" id="filter_end_date">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Search</label>
+              <input type="text" class="form-control" id="filter_search" placeholder="Prospect Name / Email / Mobile">
+            </div>
+
+            <div class="filter-btn-group">
+              <button class="btn btn-purple" onclick="applyLeadsFilter()">
+                Filter
+              </button>
+              <button class="btn btn-white" onclick="resetLeadsFilter()">
+                Reset
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Leads Data Table -->
+        <div class="table-container-card">
+          <div class="table-toolbar">
+            <div class="entries-select-wrap">
+              <span>Show</span>
+              <select class="entries-select" id="leadsPageSizeSelect" onchange="changeLeadsPageSize(this.value)">
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+              <span>entries</span>
+            </div>
+
+            <div>
+              <input type="text" class="table-search-input" id="tableQuickSearch" placeholder="Search:" oninput="debounceLeadsSearch(this.value)">
+            </div>
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>CLIENT NAME</th>
+                  <th>COUNTRY</th>
+                  <th>PROJECT CATEGORY</th>
+                  <th>DATE RECEIVED</th>
+                  <th>RECEIVED VIA</th>
+                  <th>INTRO EMAIL</th>
+                  <th>WHATSAPP</th>
+                  <th>CALL STATUS</th>
+                  <th>PASSED TO</th>
+                  <th>STATUS</th>
+                  <th>ACTION</th>
+                </tr>
+              </thead>
+              <tbody id="manageLeadsTbody">
+                <tr>
+                  <td colspan="12" class="empty-placeholder">Loading leads data...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="table-footer">
+            <div id="leadsTableCountInfo">Showing 0 to 0 of 0 entries</div>
+            <div class="pagination-btns" id="leadsPaginationBtns"></div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- =========================================================
+           TAB 4: CALLBACK REQUESTS
+           ========================================================= -->
+      <section class="tab-panel {% if active_tab == 'callbacks' %}active{% endif %}" id="tab-callbacks">
+        
+        <div class="page-header-box">
+          <div class="page-title-row">
+            <span style="font-size: 20px;">📞</span>
+            <h1 class="page-title">Callback Requests</h1>
+          </div>
+          <div class="cb-top-actions">
+            <button class="btn btn-white" id="cbTeamToggleBtn" onclick="toggleCbTeamFilter()">
+              Whole team
+            </button>
+            <button class="btn btn-orange" onclick="openScheduleCallbackModal()">
+              + Schedule callback
+            </button>
+          </div>
+        </div>
+
+        <!-- Callbacks Table Card -->
+        <div class="table-container-card">
+          <div class="table-toolbar">
+            <div class="entries-select-wrap">
+              <span>Show</span>
+              <select class="entries-select" id="cbPageSizeSelect" onchange="changeCbPageSize(this.value)">
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+              <span>entries</span>
+            </div>
+
+            <div>
+              <input type="text" class="table-search-input" id="cbQuickSearch" placeholder="Search:" oninput="debounceCbSearch(this.value)">
+            </div>
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>NAME</th>
+                  <th>CALLBACK ID</th>
+                  <th>TYPE</th>
+                  <th>DATE & TIME</th>
+                  <th>NOTES</th>
+                  <th>STATUS</th>
+                  <th>ACTION</th>
+                </tr>
+              </thead>
+              <tbody id="callbacksTbody">
+                <tr>
+                  <td colspan="8" class="empty-placeholder">No records found</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="table-footer">
+            <div id="cbTableCountInfo">Showing 0 to 0 of 0 entries</div>
+            <div class="pagination-btns" id="cbPaginationBtns"></div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
   </div>
+
+  <!-- =========================================================
+       SCHEDULE CALLBACK MODAL
+       ========================================================= -->
+  <div class="modal-backdrop" id="scheduleCallbackModal" onclick="closeModalOnBackdrop(event, 'scheduleCallbackModal')">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Schedule callback</h3>
+        <button class="btn-modal-close" onclick="closeScheduleCallbackModal()">✕</button>
+      </div>
+      
+      <form id="scheduleCallbackForm" onsubmit="handleScheduleCallbackSubmit(event)">
+        <div class="modal-body">
+          <div class="modal-grid">
+            
+            <!-- Lead ID / Name Dropdown (Replaces Name * as instructed) -->
+            <div class="form-group">
+              <label class="form-label">Lead Selection <span class="req">*</span></label>
+              <select class="form-control" id="modal_cb_lead_id" onchange="handleLeadSelectInCallbackModal(this)" required>
+                <option value="">Select Lead</option>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
+            <!-- Phone -->
+            <div class="form-group">
+              <label class="form-label">Phone</label>
+              <input type="text" class="form-control" id="modal_cb_phone" placeholder="Contact number">
+            </div>
+
+            <!-- Date & Time -->
+            <div class="form-group">
+              <label class="form-label">Date & time <span class="req">*</span></label>
+              <input type="datetime-local" class="form-control" id="modal_cb_datetime" required>
+            </div>
+
+            <!-- Type -->
+            <div class="form-group">
+              <label class="form-label">Type</label>
+              <select class="form-control" id="modal_cb_type">
+                <option value="Public" selected>Public</option>
+                <option value="Private">Private</option>
+              </select>
+            </div>
+
+            <!-- Notes -->
+            <div class="form-group span-2">
+              <label class="form-label">Notes</label>
+              <textarea class="form-control" id="modal_cb_notes" rows="3" placeholder="Enter callback agenda or instructions..."></textarea>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-orange" id="btnSaveCallback">
+            Save
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       FLOATING ACTION BUTTONS (FAB)
+       ========================================================= -->
+  <div class="fab-container">
+    <!-- 1. Menu -->
+    <div class="fab-btn-wrap">
+      <span class="fab-badge-new">New</span>
+      <button class="fab-btn" onclick="toggleSidebarCollapse()" title="Toggle Sidebar">
+        ≡
+      </button>
+    </div>
+
+    <!-- 2. Add Lead -->
+    <div class="fab-btn-wrap">
+      <span class="fab-badge-new">New</span>
+      <button class="fab-btn" onclick="resetLeadForm(); switchTab('leads_add')" title="Add New Lead">
+        +
+      </button>
+    </div>
+
+    <!-- 3. Callback -->
+    <div class="fab-btn-wrap">
+      <span class="fab-badge-new">New</span>
+      <button class="fab-btn" onclick="openScheduleCallbackModal()" title="Schedule Callback">
+        📞
+      </button>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- =========================================================
+       JAVASCRIPT APP LOGIC & API INTEGRATION
+       ========================================================= -->
+  <script>
+    // Global Authentication & CSRF
+    const AUTH_TOKEN = "{{ access_token }}";
+    const CSRF_TOKEN = "{{ csrf_token }}";
+
+    let globalLeadsCache = [];
+    let leadsCurrentPage = 1;
+    let leadsPageSize = 10;
+    let cbCurrentPage = 1;
+    let cbPageSize = 10;
+    let cbWholeTeam = true;
+    let liveChartInstance = null;
+
+    // Standard API Headers
+    function getApiHeaders() {
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + AUTH_TOKEN,
+        'X-CSRFToken': CSRF_TOKEN
+      };
+    }
+
+    // ---------------------------------------------------------
+    // Toast Notification System
+    // ---------------------------------------------------------
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span> <span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+      }, 4000);
+    }
+
+    // ---------------------------------------------------------
+    // Clock & Realtime Tickers
+    // ---------------------------------------------------------
+    function updateLiveClocks() {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'pm' : 'am';
+      hours = hours % 12 || 12;
+      const formatted = `${hours}:${minutes} ${ampm}`;
+
+      const topClock = document.getElementById('topLiveClock');
+      if (topClock) topClock.textContent = formatted;
+
+      const dashClock = document.getElementById('dashLiveTime');
+      if (dashClock) dashClock.textContent = `${hours}:${minutes} ${ampm.toUpperCase()}`;
+    }
+    setInterval(updateLiveClocks, 1000);
+
+    // ---------------------------------------------------------
+    // User Profile Dropdown
+    // ---------------------------------------------------------
+    function toggleUserDropdown(event) {
+      event.stopPropagation();
+      const dd = document.getElementById('userDropdown');
+      dd.classList.toggle('show');
+    }
+
+    document.addEventListener('click', (e) => {
+      const dd = document.getElementById('userDropdown');
+      if (dd && !dd.contains(e.target) && e.target.id !== 'avatarBtn') {
+        dd.classList.remove('show');
+      }
+      // Close open action menus
+      document.querySelectorAll('.action-menu.show').forEach(m => m.classList.remove('show'));
+    });
+
+    // ---------------------------------------------------------
+    // Sidebar & Menus
+    // ---------------------------------------------------------
+    function toggleSidebarCollapse() {
+      const sb = document.getElementById('appSidebar');
+      if (window.innerWidth <= 768) {
+        sb.classList.toggle('mobile-open');
+      } else {
+        sb.classList.toggle('collapsed');
+      }
+    }
+
+    function toggleMenu(groupId) {
+      const grp = document.getElementById(groupId);
+      if (grp) grp.classList.toggle('open');
+    }
+
+    // ---------------------------------------------------------
+    // Tab Navigation
+    // ---------------------------------------------------------
+    function switchTab(tabId) {
+      // Update Panels
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      const targetPanel = document.getElementById(`tab-${tabId}`);
+      if (targetPanel) targetPanel.classList.add('active');
+
+      // Update Sidebar Active Class
+      document.querySelectorAll('.menu-item, .submenu-item').forEach(el => el.classList.remove('active'));
+      const activeNav = document.getElementById(`nav-${tabId}`);
+      if (activeNav) activeNav.classList.add('active');
+
+      // Update URL State without reload
+      const url = new URL(window.location);
+      url.searchParams.set('tab', tabId);
+      window.history.pushState({}, '', url);
+
+      // Trigger data loads
+      if (tabId === 'leads_manage') {
+        loadManageLeads();
+      } else if (tabId === 'callbacks') {
+        loadCallbacks();
+      } else if (tabId === 'dashboard') {
+        initOrUpdateChart();
+      }
+    }
+
+    // ---------------------------------------------------------
+    // Character Counter for Add Lead
+    // ---------------------------------------------------------
+    function updateCharCount(el) {
+      const len = el.value.length;
+      const counter = document.getElementById('charCounter');
+      counter.textContent = `${len}/50 characters`;
+      if (len >= 50) {
+        counter.className = 'char-counter valid';
+      } else {
+        counter.className = 'char-counter invalid';
+      }
+    }
+
+    function resetLeadForm() {
+      document.getElementById('addLeadForm').reset();
+      const editIdEl = document.getElementById('editing_lead_id');
+      if (editIdEl) editIdEl.value = '';
+
+      const counter = document.getElementById('charCounter');
+      if (counter) {
+        counter.textContent = '0/50 characters';
+        counter.className = 'char-counter invalid';
+      }
+
+      const heading = document.getElementById('leadFormSubheading');
+      if (heading) heading.textContent = '+ ADD A NEW LEAD';
+
+      const saveBtn = document.getElementById('btnSaveLead');
+      if (saveBtn) {
+        saveBtn.className = 'btn btn-green';
+        saveBtn.innerHTML = '<span>✓</span> Save';
+      }
+
+      const clearBtn = document.getElementById('btnClearLead');
+      if (clearBtn) clearBtn.textContent = 'Clear';
+    }
+
+    // ---------------------------------------------------------
+    // API: CREATE OR UPDATE LEAD (POST /api/leads/ OR PATCH /api/leads/<id>/update/)
+    // ---------------------------------------------------------
+    async function handleCreateOrUpdateLead(event) {
+      event.preventDefault();
+      const btn = document.getElementById('btnSaveLead');
+      const editLeadId = document.getElementById('editing_lead_id') ? document.getElementById('editing_lead_id').value : '';
+      const isEdit = !!editLeadId;
+
+      btn.disabled = true;
+      btn.innerHTML = isEdit ? 'Updating...' : 'Saving...';
+
+      const desc = document.getElementById('lead_requirement_description').value.trim();
+      if (desc.length < 50) {
+        showToast('Requirement Description must be at least 50 characters long.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = isEdit ? '<span>✓</span> Update Lead' : '<span>✓</span> Save';
+        return;
+      }
+
+      const payload = {
+        client_full_name: document.getElementById('lead_client_full_name').value.trim(),
+        client_email: document.getElementById('lead_client_email').value.trim(),
+        client_company_name: document.getElementById('lead_client_company_name').value.trim(),
+        client_website_address: document.getElementById('lead_client_website_address').value.trim(),
+        client_is: document.getElementById('lead_client_is').value,
+        country_name: document.getElementById('lead_country_name').value,
+        client_full_address: document.getElementById('lead_client_full_address').value.trim(),
+        client_contact_number: document.getElementById('lead_client_contact_number').value.trim(),
+        lead_type: document.getElementById('lead_lead_type').value,
+        project_category: document.getElementById('lead_project_category').value,
+        requirement_description: desc,
+        status: document.getElementById('lead_status').value,
+        next_follow_up: document.getElementById('lead_next_follow_up').value,
+        lead_generated_from: document.getElementById('lead_lead_generated_from').value,
+      };
+
+      const url = isEdit ? `/api/leads/${editLeadId}/update/` : '/api/leads/';
+      const method = isEdit ? 'PATCH' : 'POST';
+
+      try {
+        const res = await fetch(url, {
+          method: method,
+          headers: getApiHeaders(),
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          const leadCode = data.data.lead_id || `ID #${data.data.id || editLeadId}`;
+          showToast(`Lead ${leadCode} ${isEdit ? 'updated' : 'created'} successfully!`, 'success');
+          resetLeadForm();
+          // Reload manage leads table & switch back to manage view
+          loadManageLeads(leadsCurrentPage || 1);
+          setTimeout(() => switchTab('leads_manage'), 500);
+        } else {
+          let errText = isEdit ? 'Failed to update lead.' : 'Failed to create lead.';
+          if (data.errors) {
+            errText = Object.entries(data.errors).map(([k, v]) => `${k}: ${v}`).join(' | ');
+          } else if (data.message) {
+            errText = data.message;
+          }
+          showToast(errText, 'error');
+        }
+      } catch (err) {
+        showToast(`Network error while ${isEdit ? 'updating' : 'creating'} lead.`, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = isEdit ? '<span>✓</span> Update Lead' : '<span>✓</span> Save';
+      }
+    }
+
+    // ---------------------------------------------------------
+    // API: LOAD MANAGE LEADS (GET /api/leads/)
+    // ---------------------------------------------------------
+    async function loadManageLeads(page = 1) {
+      leadsCurrentPage = page;
+      const tbody = document.getElementById('manageLeadsTbody');
+      tbody.innerHTML = '<tr><td colspan="12" class="empty-placeholder">Loading leads...</td></tr>';
+
+      const params = new URLSearchParams();
+      params.append('page', leadsCurrentPage);
+      params.append('page_size', leadsPageSize);
+
+      const clientIs = document.getElementById('filter_client_is').value;
+      if (clientIs) params.append('client_is', clientIs);
+
+      const status = document.getElementById('filter_status').value;
+      if (status) params.append('status', status);
+
+      const leadType = document.getElementById('filter_lead_type').value;
+      if (leadType) params.append('lead_type', leadType);
+
+      const genBy = document.getElementById('filter_generated_by').value;
+      if (genBy && genBy !== 'all') params.append('generated_by', genBy);
+
+      const startDate = document.getElementById('filter_start_date').value;
+      if (startDate) params.append('date_from', startDate);
+
+      const endDate = document.getElementById('filter_end_date').value;
+      if (endDate) params.append('date_to', endDate);
+
+      const searchVal = document.getElementById('filter_search').value.trim() || document.getElementById('tableQuickSearch').value.trim();
+      if (searchVal) params.append('search', searchVal);
+
+      try {
+        const res = await fetch(`/api/leads/?${params.toString()}`, {
+          method: 'GET',
+          headers: getApiHeaders()
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          globalLeadsCache = data.data;
+          renderLeadsTable(data.data, data.count, data.page, data.total_pages);
+          populateLeadSelectInModal(data.data);
+          updateSummaryProgressBar(data.count);
+        } else {
+          tbody.innerHTML = '<tr><td colspan="12" class="empty-placeholder">Failed to load leads data.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="12" class="empty-placeholder">Network error while fetching leads.</td></tr>';
+      }
+    }
+
+    function renderLeadsTable(leads, totalCount, page, totalPages) {
+      const tbody = document.getElementById('manageLeadsTbody');
+      if (!leads || leads.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="12" class="empty-placeholder">No leads found matching your filters.</td></tr>';
+        document.getElementById('leadsTableCountInfo').textContent = 'Showing 0 to 0 of 0 entries';
+        document.getElementById('leadsPaginationBtns').innerHTML = '';
+        return;
+      }
+
+      let html = '';
+      leads.forEach(lead => {
+        const createdDate = new Date(lead.created_at);
+        const dateStr = `${String(createdDate.getDate()).padStart(2, '0')}-${String(createdDate.getMonth() + 1).padStart(2, '0')}-${createdDate.getFullYear()}`;
+        const typeBadgeClass = lead.lead_type ? lead.lead_type.toLowerCase() : 'warm';
+        const statusBadgeClass = lead.status === 'In Progress' ? 'in-progress' : lead.status === 'Converted' ? 'converted' : lead.status === 'Lost' ? 'cold' : 'open';
+
+        html += `
+          <tr>
+            <td><strong>${lead.id}</strong></td>
+            <td>
+              <div class="lead-client-cell">
+                <div class="lead-company-name">
+                  <span>${escapeHtml(lead.client_company_name || lead.client_full_name)}</span>
+                  <span class="badge-pill ${typeBadgeClass}">${lead.lead_type}</span>
+                </div>
+                <div class="lead-sub-creator">
+                  ${escapeHtml(lead.client_full_name)} · by ${escapeHtml(lead.created_by_name || 'Ashish')}
+                </div>
+              </div>
+            </td>
+            <td>${escapeHtml(lead.country_name)}</td>
+            <td>${escapeHtml(lead.project_category)}</td>
+            <td>${dateStr}</td>
+            <td>${escapeHtml(lead.lead_generated_from || 'Direct')}</td>
+            <td><span style="color: #64748b;">Not sent</span></td>
+            <td><span style="color: #64748b;">Not sent</span></td>
+            <td>—</td>
+            <td>${escapeHtml(lead.created_by_name || 'Ashish')}</td>
+            <td>
+              <span class="badge-pill ${statusBadgeClass}">${lead.status}</span>
+            </td>
+            <td>
+              <div class="dropdown-action">
+                <button class="btn-action-trigger" onclick="toggleActionDropdown(event, 'action-${lead.id}')">
+                  Action ▾
+                </button>
+                <div class="action-menu" id="action-${lead.id}">
+                  <a class="action-menu-item" onclick="quickScheduleForLead(${lead.id}, '${escapeHtml(lead.client_full_name)}', '${escapeHtml(lead.client_contact_number)}')">
+                    📞 Schedule Callback
+                  </a>
+                  <a class="action-menu-item" onclick="editLeadInForm(${lead.id})">
+                    ✏️ Edit Lead
+                  </a>
+                  <a class="action-menu-item danger" onclick="deleteLead(${lead.id}, '${escapeHtml(lead.lead_id)}')">
+                    🗑️ Delete Lead
+                  </a>
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+
+      // Table Footer Pagination
+      const start = (page - 1) * leadsPageSize + 1;
+      const end = Math.min(page * leadsPageSize, totalCount);
+      document.getElementById('leadsTableCountInfo').textContent = `Showing ${start} to ${end} of ${totalCount} entries`;
+
+      renderPagination(totalCount, page, totalPages, 'leadsPaginationBtns', loadManageLeads);
+    }
+
+    function toggleActionDropdown(event, menuId) {
+      event.stopPropagation();
+      document.querySelectorAll('.action-menu.show').forEach(m => {
+        if (m.id !== menuId) m.classList.remove('show');
+      });
+      const menu = document.getElementById(menuId);
+      if (menu) menu.classList.toggle('show');
+    }
+
+    function renderPagination(totalCount, currentPage, totalPages, containerId, callbackFn) {
+      const container = document.getElementById(containerId);
+      if (!totalPages || totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+      }
+
+      let btns = `
+        <button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="${callbackFn.name}(${currentPage - 1})">
+          Prev
+        </button>
+      `;
+
+      for (let p = 1; p <= totalPages; p++) {
+        if (p === 1 || p === totalPages || (p >= currentPage - 1 && p <= currentPage + 1)) {
+          btns += `
+            <button class="page-btn ${p === currentPage ? 'active' : ''}" onclick="${callbackFn.name}(${p})">
+              ${p}
+            </button>
+          `;
+        } else if (p === currentPage - 2 || p === currentPage + 2) {
+          btns += `<span style="padding: 4px;">...</span>`;
+        }
+      }
+
+      btns += `
+        <button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="${callbackFn.name}(${currentPage + 1})">
+          Next
+        </button>
+      `;
+
+      container.innerHTML = btns;
+    }
+
+    function applyLeadsFilter() {
+      loadManageLeads(1);
+    }
+
+    function resetLeadsFilter() {
+      document.getElementById('filter_client_is').value = '';
+      document.getElementById('filter_status').value = '';
+      document.getElementById('filter_lead_type').value = '';
+      const genByEl = document.getElementById('filter_generated_by');
+      if (genByEl) genByEl.value = 'all';
+      document.getElementById('filter_start_date').value = '';
+      document.getElementById('filter_end_date').value = '';
+      document.getElementById('filter_search').value = '';
+      document.getElementById('tableQuickSearch').value = '';
+      loadManageLeads(1);
+    }
+
+    let searchDebounceTimeout = null;
+    function debounceLeadsSearch(val) {
+      clearTimeout(searchDebounceTimeout);
+      searchDebounceTimeout = setTimeout(() => {
+        loadManageLeads(1);
+      }, 350);
+    }
+
+    function changeLeadsPageSize(size) {
+      leadsPageSize = parseInt(size, 10);
+      loadManageLeads(1);
+    }
+
+    // ---------------------------------------------------------
+    // API: DELETE LEAD (DELETE /api/leads/<id>/)
+    // ---------------------------------------------------------
+    async function deleteLead(leadId, leadRef) {
+      if (!confirm(`Are you sure you want to delete lead ${leadRef}? This action cannot be undone.`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/leads/${leadId}/delete/`, {
+          method: 'DELETE',
+          headers: getApiHeaders()
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`Lead ${leadRef} deleted successfully.`, 'success');
+          loadManageLeads(leadsCurrentPage);
+        } else {
+          showToast(data.message || 'Failed to delete lead.', 'error');
+        }
+      } catch (err) {
+        showToast('Network error while deleting lead.', 'error');
+      }
+    }
+
+    // ---------------------------------------------------------
+    // EDIT LEAD IN ADD-LEAD FORM (Loads complete lead into form)
+    // ---------------------------------------------------------
+    function editLeadInForm(leadId) {
+      const lead = globalLeadsCache.find(l => l.id === leadId);
+      if (!lead) {
+        // Fetch single lead details from API
+        fetch(`/api/leads/${leadId}/`, { headers: getApiHeaders() })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && data.data) {
+              populateLeadFormForEdit(data.data);
+            } else {
+              showToast('Could not load lead details for editing.', 'error');
+            }
+          })
+          .catch(() => showToast('Network error loading lead details.', 'error'));
+        return;
+      }
+      populateLeadFormForEdit(lead);
+    }
+
+    function populateLeadFormForEdit(lead) {
+      // 1. Store editing lead id
+      document.getElementById('editing_lead_id').value = lead.id;
+
+      // 2. Populate all 14 form fields
+      document.getElementById('lead_client_full_name').value = lead.client_full_name || '';
+      document.getElementById('lead_client_email').value = lead.client_email || '';
+      document.getElementById('lead_client_company_name').value = lead.client_company_name || '';
+      document.getElementById('lead_client_website_address').value = lead.client_website_address || '';
+      if (lead.client_is) document.getElementById('lead_client_is').value = lead.client_is;
+      if (lead.country_name) document.getElementById('lead_country_name').value = lead.country_name;
+      document.getElementById('lead_client_full_address').value = lead.client_full_address || '';
+      document.getElementById('lead_client_contact_number').value = lead.client_contact_number || '';
+      if (lead.lead_type) document.getElementById('lead_lead_type').value = lead.lead_type;
+      if (lead.project_category) document.getElementById('lead_project_category').value = lead.project_category;
+
+      const descEl = document.getElementById('lead_requirement_description');
+      descEl.value = lead.requirement_description || '';
+      updateCharCount(descEl);
+
+      if (lead.status) document.getElementById('lead_status').value = lead.status;
+      if (lead.next_follow_up) document.getElementById('lead_next_follow_up').value = lead.next_follow_up;
+      if (lead.lead_generated_from) document.getElementById('lead_lead_generated_from').value = lead.lead_generated_from;
+
+      // 3. Update Heading & Button states
+      const leadCode = lead.lead_id || `ID #${lead.id}`;
+      document.getElementById('leadFormSubheading').innerHTML = `✏️ EDIT LEAD (${leadCode})`;
+      
+      const saveBtn = document.getElementById('btnSaveLead');
+      saveBtn.className = 'btn btn-green';
+      saveBtn.innerHTML = '<span>✓</span> Update Lead';
+
+      const clearBtn = document.getElementById('btnClearLead');
+      clearBtn.textContent = 'Cancel Edit';
+
+      // 4. Switch tab to Add/Edit form and scroll up
+      switchTab('leads_add');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ---------------------------------------------------------
+    // CSV EXPORT FOR LEADS
+    // ---------------------------------------------------------
+    function exportLeadsCSV() {
+      if (!globalLeadsCache || globalLeadsCache.length === 0) {
+        showToast('No leads data to export.', 'error');
+        return;
+      }
+
+      const headers = ['ID', 'Lead ID', 'Client Name', 'Company', 'Email', 'Contact', 'Type', 'Category', 'Status', 'Created At'];
+      const rows = globalLeadsCache.map(l => [
+        l.id,
+        l.lead_id,
+        `"${(l.client_full_name || '').replace(/"/g, '""')}"`,
+        `"${(l.client_company_name || '').replace(/"/g, '""')}"`,
+        l.client_email,
+        l.client_contact_number,
+        l.lead_type,
+        `"${(l.project_category || '').replace(/"/g, '""')}"`,
+        l.status,
+        l.created_at
+      ]);
+
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `leads_export_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('CSV export downloaded successfully.', 'success');
+    }
+
+    // ---------------------------------------------------------
+    // API: LOAD CALLBACKS (GET /api/callbacks/)
+    // ---------------------------------------------------------
+    async function loadCallbacks(page = 1) {
+      cbCurrentPage = page;
+      const tbody = document.getElementById('callbacksTbody');
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-placeholder">Loading callbacks...</td></tr>';
+
+      const params = new URLSearchParams();
+      params.append('page', cbCurrentPage);
+      params.append('page_size', cbPageSize);
+
+      if (!cbWholeTeam) {
+        params.append('scope', 'my');
+      }
+
+      const searchVal = document.getElementById('cbQuickSearch').value.trim();
+      if (searchVal) params.append('search', searchVal);
+
+      try {
+        const res = await fetch(`/api/callbacks/?${params.toString()}`, {
+          method: 'GET',
+          headers: getApiHeaders()
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          renderCallbacksTable(data.data, data.count, data.page, data.total_pages);
+        } else {
+          tbody.innerHTML = '<tr><td colspan="8" class="empty-placeholder">No records found</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-placeholder">Network error while fetching callbacks.</td></tr>';
+      }
+    }
+
+    function renderCallbacksTable(callbacks, totalCount, page, totalPages) {
+      const tbody = document.getElementById('callbacksTbody');
+      if (!callbacks || callbacks.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-placeholder">No records found</td></tr>';
+        document.getElementById('cbTableCountInfo').textContent = 'Showing 0 to 0 of 0 entries';
+        document.getElementById('cbPaginationBtns').innerHTML = '';
+        return;
+      }
+
+      let html = '';
+      callbacks.forEach((cb, idx) => {
+        const cbDate = new Date(cb.date_time);
+        const dateStr = cbDate.toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' });
+        const typeBadge = cb.type === 'Public' ? 'public' : 'private';
+        const statusBadge = cb.status === 'Completed' ? 'completed' : 'pending';
+
+        html += `
+          <tr>
+            <td>${(page - 1) * cbPageSize + idx + 1}</td>
+            <td>
+              <strong>${escapeHtml(cb.client_name || 'Lead')}</strong>
+              <div style="font-size: 11px; color: #64748b;">${escapeHtml(cb.lead_ref || '')}</div>
+            </td>
+            <td><strong>CB-${String(cb.id).padStart(4, '0')}</strong></td>
+            <td><span class="badge-pill ${typeBadge}">${cb.type}</span></td>
+            <td>${dateStr}</td>
+            <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              ${escapeHtml(cb.notes || '—')}
+            </td>
+            <td><span class="badge-pill ${statusBadge}">${cb.status}</span></td>
+            <td>
+              <div style="display: flex; gap: 6px;">
+                ${cb.status !== 'Completed' ? `
+                  <button class="btn btn-white" style="padding: 4px 8px; font-size: 11.5px;" onclick="markCallbackCompleted(${cb.id})" title="Mark Done">
+                    ✓ Done
+                  </button>
+                ` : ''}
+                <button class="btn btn-white" style="padding: 4px 8px; font-size: 11.5px; color: #dc2626;" onclick="deleteCallback(${cb.id})" title="Delete">
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+
+      const start = (page - 1) * cbPageSize + 1;
+      const end = Math.min(page * cbPageSize, totalCount);
+      document.getElementById('cbTableCountInfo').textContent = `Showing ${start} to ${end} of ${totalCount} entries`;
+
+      renderPagination(totalCount, page, totalPages, 'cbPaginationBtns', loadCallbacks);
+    }
+
+    function toggleCbTeamFilter() {
+      cbWholeTeam = !cbWholeTeam;
+      const btn = document.getElementById('cbTeamToggleBtn');
+      btn.textContent = cbWholeTeam ? 'Whole team' : 'My callbacks';
+      loadCallbacks(1);
+    }
+
+    let cbSearchTimeout = null;
+    function debounceCbSearch(val) {
+      clearTimeout(cbSearchTimeout);
+      cbSearchTimeout = setTimeout(() => {
+        loadCallbacks(1);
+      }, 350);
+    }
+
+    function changeCbPageSize(size) {
+      cbPageSize = parseInt(size, 10);
+      loadCallbacks(1);
+    }
+
+    async function markCallbackCompleted(cbId) {
+      try {
+        const res = await fetch(`/api/callbacks/${cbId}/update/`, {
+          method: 'PATCH',
+          headers: getApiHeaders(),
+          body: JSON.stringify({ status: 'Completed' })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('Callback marked as Completed.', 'success');
+          loadCallbacks(cbCurrentPage);
+        } else {
+          showToast('Failed to update callback status.', 'error');
+        }
+      } catch (err) {
+        showToast('Network error while updating callback.', 'error');
+      }
+    }
+
+    async function deleteCallback(cbId) {
+      if (!confirm('Are you sure you want to delete this callback?')) return;
+
+      try {
+        const res = await fetch(`/api/callbacks/${cbId}/delete/`, {
+          method: 'DELETE',
+          headers: getApiHeaders()
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('Callback deleted successfully.', 'success');
+          loadCallbacks(cbCurrentPage);
+        } else {
+          showToast(data.message || 'Failed to delete callback.', 'error');
+        }
+      } catch (err) {
+        showToast('Network error while deleting callback.', 'error');
+      }
+    }
+
+    // ---------------------------------------------------------
+    // SCHEDULE CALLBACK MODAL & API (POST /api/callbacks/)
+    // ---------------------------------------------------------
+    function populateLeadSelectInModal(leads) {
+      const select = document.getElementById('modal_cb_lead_id');
+      const currentVal = select.value;
+      select.innerHTML = '<option value="">Select Lead</option>';
+      leads.forEach(lead => {
+        const opt = document.createElement('option');
+        opt.value = lead.id;
+        opt.dataset.phone = lead.client_contact_number || '';
+        opt.textContent = `${lead.lead_id} - ${lead.client_full_name} (${lead.client_company_name || 'Individual'})`;
+        select.appendChild(opt);
+      });
+      if (currentVal) select.value = currentVal;
+    }
+
+    function handleLeadSelectInCallbackModal(selectEl) {
+      const selected = selectEl.options[selectEl.selectedIndex];
+      if (selected && selected.dataset.phone) {
+        document.getElementById('modal_cb_phone').value = selected.dataset.phone;
+      }
+    }
+
+    function openScheduleCallbackModal() {
+      // Set default datetime to tomorrow at 11:00 AM
+      const nextTime = new Date();
+      nextTime.setHours(nextTime.getHours() + 2, 0, 0, 0);
+      const isoLocal = new Date(nextTime.getTime() - nextTime.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      document.getElementById('modal_cb_datetime').value = isoLocal;
+
+      // Ensure leads are populated
+      if (globalLeadsCache.length > 0) {
+        populateLeadSelectInModal(globalLeadsCache);
+      } else {
+        fetch('/api/leads/?page_size=100', { headers: getApiHeaders() })
+          .then(r => r.json())
+          .then(d => {
+            if (d.data) {
+              globalLeadsCache = d.data;
+              populateLeadSelectInModal(d.data);
+            }
+          });
+      }
+
+      document.getElementById('scheduleCallbackModal').classList.add('show');
+    }
+
+    function closeScheduleCallbackModal() {
+      document.getElementById('scheduleCallbackModal').classList.remove('show');
+    }
+
+    function quickScheduleForLead(leadId, clientName, contactNumber) {
+      openScheduleCallbackModal();
+      setTimeout(() => {
+        const select = document.getElementById('modal_cb_lead_id');
+        select.value = leadId;
+        if (contactNumber) {
+          document.getElementById('modal_cb_phone').value = contactNumber;
+        }
+      }, 100);
+    }
+
+    async function handleScheduleCallbackSubmit(event) {
+      event.preventDefault();
+      const btn = document.getElementById('btnSaveCallback');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      const leadId = document.getElementById('modal_cb_lead_id').value;
+      const phone = document.getElementById('modal_cb_phone').value.trim();
+      const dateTime = document.getElementById('modal_cb_datetime').value;
+      const type = document.getElementById('modal_cb_type').value;
+      const notes = document.getElementById('modal_cb_notes').value.trim();
+
+      const payload = {
+        lead_id: leadId,
+        phone: phone,
+        date_time: dateTime,
+        type: type,
+        notes: notes
+      };
+
+      try {
+        const res = await fetch('/api/callbacks/', {
+          method: 'POST',
+          headers: getApiHeaders(),
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('Callback scheduled successfully!', 'success');
+          closeScheduleCallbackModal();
+          document.getElementById('scheduleCallbackForm').reset();
+          loadCallbacks(1);
+        } else {
+          let errText = data.message || 'Failed to schedule callback.';
+          if (data.errors) {
+            errText = Object.entries(data.errors).map(([k, v]) => `${k}: ${v}`).join(' | ');
+          }
+          showToast(errText, 'error');
+        }
+      } catch (err) {
+        showToast('Network error while scheduling callback.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save';
+      }
+    }
+
+    function closeModalOnBackdrop(event, modalId) {
+      if (event.target.id === modalId) {
+        document.getElementById(modalId).classList.remove('show');
+      }
+    }
+
+    // ---------------------------------------------------------
+    // CHART.JS: LIVE LEADS POOL (DONUT CHART)
+    // ---------------------------------------------------------
+    function initOrUpdateChart() {
+      const ctx = document.getElementById('liveLeadsChart');
+      if (!ctx) return;
+
+      const hot = parseInt("{{ hot_count|default:0 }}", 10);
+      const warm = parseInt("{{ warm_count|default:0 }}", 10);
+      const cold = parseInt("{{ cold_count|default:0 }}", 10);
+
+      const dataValues = (hot === 0 && warm === 0 && cold === 0) ? [3, 3, 5] : [hot, warm, cold];
+
+      if (liveChartInstance) {
+        liveChartInstance.data.datasets[0].data = dataValues;
+        liveChartInstance.update();
+        return;
+      }
+
+      liveChartInstance = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Hot', 'Warm', 'Cold'],
+          datasets: [{
+            data: dataValues,
+            backgroundColor: [
+              '#10b981', // Green for Hot
+              '#3b82f6', // Blue for Warm
+              '#f59e0b'  // Orange for Cold
+            ],
+            borderWidth: 2,
+            borderColor: '#ffffff',
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return ` ${context.label}: ${context.raw} leads`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateSummaryProgressBar(total) {
+      const worked = parseInt("{{ worked_upon_count|default:0 }}", 10);
+      const converted = parseInt("{{ converted_count|default:0 }}", 10);
+      const totalLeads = total || parseInt("{{ total_leads_count|default:1 }}", 10);
+
+      const purplePct = Math.max(10, Math.round(((totalLeads - worked) / (totalLeads || 1)) * 100));
+      const orangePct = Math.max(10, Math.round((worked / (totalLeads || 1)) * 100));
+      const greenPct = Math.max(10, Math.round((converted / (totalLeads || 1)) * 100));
+
+      const pP = document.getElementById('progSegPurple');
+      const pO = document.getElementById('progSegOrange');
+      const pG = document.getElementById('progSegGreen');
+      if (pP) pP.style.width = `${purplePct}%`;
+      if (pO) pO.style.width = `${orangePct}%`;
+      if (pG) pG.style.width = `${greenPct}%`;
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Initial Load
+    document.addEventListener('DOMContentLoaded', () => {
+      updateLiveClocks();
+      initOrUpdateChart();
+
+      // Load initial active tab data
+      const activeTab = "{{ active_tab|default:'dashboard' }}";
+      if (activeTab === 'leads_manage') {
+        loadManageLeads(1);
+      } else if (activeTab === 'callbacks') {
+        loadCallbacks(1);
+      } else {
+        // Pre-fetch leads for callback dropdowns
+        fetch('/api/leads/?page_size=50', { headers: getApiHeaders() })
+          .then(r => r.json())
+          .then(d => {
+            if (d.data) {
+              globalLeadsCache = d.data;
+              populateLeadSelectInModal(d.data);
+            }
+          }).catch(() => {});
+      }
+    });
+  </script>
 
 </body>
 </html>
