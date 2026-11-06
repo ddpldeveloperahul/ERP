@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework import status
 from unittest.mock import patch
@@ -542,3 +543,271 @@ class ScheduleCallbackAPITests(TestCase):
         self.assertEqual(del_res.status_code, status.HTTP_200_OK)
         self.assertTrue(del_res.data["success"])
         self.assertFalse(ScheduleCallback.objects.filter(pk=callback_id).exists())
+
+
+from erp.models import EmailCampaign
+
+
+class EmailCampaignAPITests(TestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.campaigns_url = "/api/campaigns/"
+
+        # Create user
+        self.user = User.objects.create_user(
+            email="campaign_user@drdesigntech.com",
+            password="StrongPassword@123",
+            first_name="Ashish",
+            last_name="Rawat",
+            role="LEAD_GEN",
+            is_active=True,
+            is_email_verified=True,
+        )
+
+        # Create sample leads for audience matching
+        self.lead1 = Lead.objects.create(
+            client_full_name="David Lune",
+            client_email="david@fake.in",
+            client_company_name="Fake Co",
+            client_is="Domestic",
+            country_name="India",
+            client_full_address="Gurugram",
+            client_contact_number="+91 786678978",
+            lead_type="Warm",
+            project_category="E-commerce Website",
+            requirement_description="Need complete custom ERP solution with multi-role access control.",
+            status="Open",
+            created_by=self.user,
+        )
+
+        self.lead2 = Lead.objects.create(
+            client_full_name="John Smith",
+            client_email="john@ukdesigns.com",
+            client_company_name="UK Designs",
+            client_is="International",
+            country_name="United Kingdom",
+            client_full_address="London",
+            client_contact_number="+44 2079460912",
+            lead_type="Hot",
+            project_category="Web Development",
+            requirement_description="Website revamp with modern stack and fast loading times.",
+            status="In Progress",
+            created_by=self.user,
+        )
+
+        self.lead_no_email = Lead.objects.create(
+            client_full_name="No Email Client",
+            client_email="",
+            client_company_name="Offline Ltd",
+            client_is="Domestic",
+            country_name="India",
+            client_full_address="Delhi",
+            client_contact_number="+91 9988776655",
+            lead_type="Cold",
+            project_category="Web Development",
+            requirement_description="Needs regular website maintenance without email contact.",
+            status="Open",
+            created_by=self.user,
+        )
+
+        self.lead_lost = Lead.objects.create(
+            client_full_name="Lost Lead",
+            client_email="lost@example.com",
+            client_company_name="Lost Inc",
+            client_is="Domestic",
+            country_name="India",
+            client_full_address="Mumbai",
+            client_contact_number="+91 9876543210",
+            lead_type="Hot",
+            project_category="Web Development",
+            requirement_description="Lost client proposal due to budget constraints.",
+            status="Lost",
+            created_by=self.user,
+        )
+
+        self.valid_campaign_payload = {
+            "campaign_name": "Diwali offer — UK design leads",
+            "lead_type": "Any",
+            "category": "Any",
+            "country": "Any",
+            "client_is": "Any",
+            "sales_status": "Any (except Lost/Closed)",
+            "subject": "Exclusive Design & ERP Offers For You",
+            "message": "Hi {name},\n\nWe have exclusive Diwali deals for {company}.\n\nRegards,\nAshish\nDR. DESIGN PVT. LTD.",
+        }
+
+    def test_unauthenticated_request_rejected(self):
+        res = self.client.get(self.campaigns_url)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_create_campaign(self):
+        self.client.force_authenticate(user=self.user)
+        res = self.client.post(self.campaigns_url, self.valid_campaign_payload, format="json")
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(res.data["success"])
+        self.assertEqual(res.data["data"]["campaign_name"], "Diwali offer — UK design leads")
+        self.assertTrue(res.data["data"]["campaign_id"].startswith("CAMP-"))
+        self.assertEqual(res.data["data"]["created_by_name"], "Ashish Rawat")
+
+    def test_create_campaign_filtered_audience(self):
+        self.client.force_authenticate(user=self.user)
+        payload = self.valid_campaign_payload.copy()
+        payload["country"] = "United Kingdom"
+        payload["lead_type"] = "Hot"
+        res = self.client.post(self.campaigns_url, payload, format="json")
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(res.data["success"])
+        self.assertEqual(res.data["data"]["country"], "United Kingdom")
+
+    def test_list_and_search_campaigns(self):
+        self.client.force_authenticate(user=self.user)
+        self.client.post(self.campaigns_url, self.valid_campaign_payload, format="json")
+
+        list_res = self.client.get(self.campaigns_url)
+        self.assertEqual(list_res.status_code, status.HTTP_200_OK)
+        self.assertTrue(list_res.data["success"])
+        self.assertEqual(list_res.data["count"], 1)
+
+        # Search by keyword
+        search_res = self.client.get(f"{self.campaigns_url}?search=Diwali")
+        self.assertEqual(search_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(search_res.data["count"], 1)
+
+    def test_update_campaign(self):
+        self.client.force_authenticate(user=self.user)
+        create_res = self.client.post(self.campaigns_url, self.valid_campaign_payload, format="json")
+        camp_id = create_res.data["data"]["id"]
+
+        patch_res = self.client.patch(
+            f"{self.campaigns_url}{camp_id}/",
+            {"subject": "Updated Diwali Offer Subject", "status": "Scheduled"},
+            format="json",
+        )
+        self.assertEqual(patch_res.status_code, status.HTTP_200_OK)
+        self.assertTrue(patch_res.data["success"])
+        self.assertEqual(patch_res.data["data"]["subject"], "Updated Diwali Offer Subject")
+        self.assertEqual(patch_res.data["data"]["status"], "Scheduled")
+
+    def test_delete_campaign(self):
+        self.client.force_authenticate(user=self.user)
+        create_res = self.client.post(self.campaigns_url, self.valid_campaign_payload, format="json")
+        camp_id = create_res.data["data"]["id"]
+
+        del_res = self.client.delete(f"{self.campaigns_url}{camp_id}/")
+        self.assertEqual(del_res.status_code, status.HTTP_200_OK)
+        self.assertTrue(del_res.data["success"])
+        self.assertFalse(EmailCampaign.objects.filter(pk=camp_id).exists())
+
+    def test_campaign_leads_endpoint(self):
+        self.client.force_authenticate(user=self.user)
+        create_res = self.client.post(self.campaigns_url, self.valid_campaign_payload, format="json")
+        camp_id = create_res.data["data"]["id"]
+
+        leads_res = self.client.get(f"{self.campaigns_url}{camp_id}/leads/")
+        self.assertEqual(leads_res.status_code, status.HTTP_200_OK)
+        self.assertTrue(leads_res.data["success"])
+        self.assertEqual(leads_res.data["matching_leads_count"], 2)
+        self.assertEqual(len(leads_res.data["data"]), 2)
+
+
+class LeadGenerationReportTests(TestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.report_url = "/api/reports/lead-generation/"
+
+        self.user = User.objects.create_user(
+            email="report_user@drdesigntech.com",
+            password="StrongPassword@123",
+            first_name="Ashish",
+            last_name="Rawat",
+            role="ADMIN",
+        )
+
+        # Create sample leads
+        Lead.objects.create(
+            client_full_name="Alpha Tech",
+            client_email="alpha@tech.com",
+            client_company_name="Alpha Tech Ltd",
+            country_name="India",
+            client_is="Domestic",
+            client_full_address="Connaught Place, New Delhi",
+            client_contact_number="+919876543210",
+            lead_type="Hot",
+            project_category="Graphic Designing",
+            requirement_description="Corporate branding",
+            status="In Progress",
+            lead_generated_from="Calling",
+            created_by=self.user,
+        )
+
+        Lead.objects.create(
+            client_full_name="Beta Innovations",
+            client_email="beta@innovations.co.uk",
+            client_company_name="Beta Innovations UK",
+            country_name="United Kingdom",
+            client_is="International",
+            client_full_address="London, UK",
+            client_contact_number="+442079460999",
+            lead_type="Warm",
+            project_category="Website Design & Development",
+            requirement_description="E-commerce portal",
+            status="Converted",
+            lead_generated_from="Email",
+            created_by=self.user,
+        )
+
+    def test_unauthenticated_report_denied(self):
+        res = self.client.get(self.report_url)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_authenticated_get_report(self):
+        self.client.force_authenticate(user=self.user)
+        res = self.client.get(self.report_url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertTrue(res.data["success"])
+        data = res.data["data"]
+
+        # Check summary
+        summary = data["summary"]
+        self.assertEqual(summary["leads_generated"], 2)
+        self.assertEqual(summary["hot_leads"], 1)
+        self.assertEqual(summary["worked_upon"], 2)
+        self.assertEqual(summary["converted"], 1)
+        self.assertEqual(summary["conversion_pct"], 50.0)
+
+        # Check leads_per_day
+        self.assertTrue(len(data["leads_per_day"]) >= 1)
+
+        # Check executive performance
+        self.assertEqual(len(data["by_executive"]), 1)
+        self.assertEqual(data["by_executive"][0]["executive"], "Ashish Rawat")
+        self.assertEqual(data["by_executive"][0]["generated"], 2)
+
+        # Check breakdowns
+        self.assertTrue(any(c["name"] == "Graphic Designing" for c in data["by_project_category"]))
+        self.assertTrue(any(s["name"] == "Calling" for s in data["by_source"]))
+        self.assertTrue(any(c["name"] == "India" for c in data["by_country"]))
+        self.assertTrue(any(t["name"] == "Hot" for t in data["by_lead_type"]))
+        self.assertTrue(len(data["by_call_status"]) > 0)
+        self.assertEqual(len(data["passed_to_executive"]), 1)
+
+    def test_report_date_filtering(self):
+        self.client.force_authenticate(user=self.user)
+        today = timezone.now().date().strftime("%Y-%m-%d")
+        res = self.client.get(f"{self.report_url}?date_from={today}&date_to={today}")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertTrue(res.data["success"])
+        self.assertEqual(res.data["data"]["summary"]["leads_generated"], 2)
+
+    def test_reports_web_view(self):
+        self.client.force_login(self.user)
+        res = self.client.get("/reports/")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, "Lead Generation Report")
+

@@ -1,6 +1,7 @@
 import random
 from datetime import timedelta
 from django.db import models
+from django.db.models import Q
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils import timezone
 
@@ -380,3 +381,251 @@ class ScheduleCallback(models.Model):
     def __str__(self):
         lead_ref = self.lead.lead_id if hasattr(self.lead, "lead_id") else f"Lead #{self.lead_id}"
         return f"{lead_ref} - {self.date_time.strftime('%Y-%m-%d %H:%M')} ({self.type})"
+
+
+# 6. Email Campaign Model
+class EmailCampaign(models.Model):
+    LEAD_TYPE_CHOICES = [
+        ("Any", "Any"),
+        ("Hot", "Hot"),
+        ("Warm", "Warm"),
+        ("Cold", "Cold"),
+    ]
+
+    CATEGORY_CHOICES = [
+        ("Any", "Any"),
+        ("Website Design & Development", "Website Design & Development"),
+        ("E-commerce Website", "E-commerce Website"),
+        ("Mobile App Development", "Mobile App Development"),
+        ("Custom Software / ERP / CRM", "Custom Software / ERP / CRM"),
+        ("SEO", "SEO"),
+        ("Social Media Marketing", "Social Media Marketing"),
+        ("Google / Meta Ads", "Google / Meta Ads"),
+        ("Graphic Designing", "Graphic Designing"),
+        ("Video Editing", "Video Editing"),
+        ("UI/UX Design", "UI/UX Design"),
+        ("Website Maintenance", "Website Maintenance"),
+        ("Domain & Hosting", "Domain & Hosting"),
+    ]
+
+    COUNTRY_CHOICES = [
+        ("Any", "Any"),
+        ("India", "India"),
+        ("United States", "United States"),
+        ("United Kingdom", "United Kingdom"),
+        ("United Arab Emirates", "United Arab Emirates"),
+        ("Canada", "Canada"),
+        ("Australia", "Australia"),
+        ("Singapore", "Singapore"),
+        ("Saudi Arabia", "Saudi Arabia"),
+        ("Qatar", "Qatar"),
+        ("Germany", "Germany"),
+        ("Nepal", "Nepal"),
+        ("Other", "Other"),
+    ]
+
+    CLIENT_IS_CHOICES = [
+        ("Any", "Any"),
+        ("Domestic", "Domestic"),
+        ("International", "International"),
+    ]
+
+    SALES_STATUS_CHOICES = [
+        ("Any (except Lost/Closed)", "Any (except Lost/Closed)"),
+        ("Open", "Open"),
+        ("In Progress", "In Progress"),
+        ("Follow Up", "Follow Up"),
+        ("Converted", "Converted"),
+        ("Lost", "Lost"),
+        ("Closed", "Closed"),
+    ]
+
+    STATUS_CHOICES = [
+        ("Draft", "Draft"),
+        ("Scheduled", "Scheduled"),
+        ("In Progress", "In Progress"),
+        ("Completed", "Completed"),
+        ("Cancelled", "Cancelled"),
+    ]
+
+    name = models.CharField(
+        max_length=255,
+        verbose_name="Campaign Name",
+        help_text="e.g. Diwali offer — UK design leads"
+    )
+
+    # Audience Filters
+    lead_type = models.CharField(
+        max_length=50,
+        choices=LEAD_TYPE_CHOICES,
+        default="Any",
+        blank=True,
+        verbose_name="Audience Lead Type"
+    )
+    category = models.CharField(
+        max_length=150,
+        choices=CATEGORY_CHOICES,
+        default="Any",
+        blank=True,
+        verbose_name="Audience Category"
+    )
+    country = models.CharField(
+        max_length=100,
+        choices=COUNTRY_CHOICES,
+        default="Any",
+        blank=True,
+        verbose_name="Audience Country"
+    )
+    client_is = models.CharField(
+        max_length=50,
+        choices=CLIENT_IS_CHOICES,
+        default="Any",
+        blank=True,
+        verbose_name="Audience Client Is"
+    )
+    sales_status = models.CharField(
+        max_length=100,
+        choices=SALES_STATUS_CHOICES,
+        default="Any (except Lost/Closed)",
+        blank=True,
+        verbose_name="Audience Sales Status"
+    )
+    generated_from_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Generated Between (Start Date)"
+    )
+    generated_to_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Generated Between (End Date)"
+    )
+
+    # Email Content
+    subject = models.CharField(
+        max_length=255,
+        verbose_name="Email Subject"
+    )
+    message = models.TextField(
+        verbose_name="Message Template",
+        help_text="Use {name} and {company} placeholders"
+    )
+
+    # Campaign Status & Metadata
+    status = models.CharField(
+        max_length=30,
+        choices=STATUS_CHOICES,
+        default="Draft",
+        verbose_name="Campaign Status"
+    )
+    total_leads_matched = models.IntegerField(
+        default=0,
+        verbose_name="Matched Leads Count"
+    )
+
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="campaigns",
+        verbose_name="Created By"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Email Campaign"
+        verbose_name_plural = "Email Campaigns"
+
+    @property
+    def campaign_id(self):
+        return f"CAMP-{self.id:04d}" if self.id else ""
+
+    @property
+    def campaign_name(self):
+        return self.name
+
+    @campaign_name.setter
+    def campaign_name(self, value):
+        self.name = value
+
+    @property
+    def matching_leads_count(self):
+        return self.total_leads_matched or self.get_matching_leads_queryset().count()
+
+    @property
+    def audience_summary(self):
+        filters = []
+        if self.country and self.country != "Any":
+            filters.append(f"country: {self.country}")
+        if self.lead_type and self.lead_type != "Any":
+            filters.append(f"lead type: {self.lead_type}")
+        if self.category and self.category != "Any":
+            filters.append(f"category: {self.category}")
+        if self.client_is and self.client_is != "Any":
+            filters.append(f"client is: {self.client_is}")
+        if self.sales_status and self.sales_status not in ["Any", "Any (except Lost/Closed)"]:
+            filters.append(f"status: {self.sales_status}")
+        if self.generated_from_date or self.generated_to_date:
+            from_str = self.generated_from_date.strftime("%d-%m-%Y") if self.generated_from_date else "start"
+            to_str = self.generated_to_date.strftime("%d-%m-%Y") if self.generated_to_date else "today"
+            filters.append(f"dates: {from_str} to {to_str}")
+
+        if not filters:
+            return "All my leads"
+        return ", ".join(filters)
+
+    def __str__(self):
+        return f"{self.campaign_id} - {self.name} ({self.status})"
+
+    def get_matching_leads_queryset(self, user=None):
+        from erp.models import Lead
+        eval_user = user or self.created_by
+        if eval_user and (getattr(eval_user, "role", "") == "ADMIN" or eval_user.is_superuser):
+            qs = Lead.objects.all()
+        elif eval_user:
+            qs = Lead.objects.filter(created_by=eval_user)
+        else:
+            qs = Lead.objects.all()
+
+        # Only leads with valid email address
+        qs = qs.exclude(client_email="").exclude(client_email__isnull=True)
+
+        if self.lead_type and self.lead_type != "Any":
+            qs = qs.filter(lead_type__iexact=self.lead_type.strip())
+
+        if self.category and self.category != "Any":
+            qs = qs.filter(project_category__icontains=self.category.strip())
+
+        if self.country and self.country != "Any":
+            qs = qs.filter(country_name__icontains=self.country.strip())
+
+        if self.client_is and self.client_is != "Any":
+            qs = qs.filter(client_is__iexact=self.client_is.strip())
+
+        if self.sales_status:
+            status_clean = self.sales_status.strip()
+            if status_clean.lower() in ["any (except lost/closed)", "except lost/closed", "any_except_lost_closed"]:
+                qs = qs.exclude(status__in=["Lost", "Closed"])
+            elif status_clean.lower() == "follow up":
+                qs = qs.filter(Q(status__iexact="Follow Up") | Q(next_follow_up__iexact="Yes"))
+            elif status_clean.lower() != "any":
+                qs = qs.filter(status__iexact=status_clean)
+
+        if self.generated_from_date:
+            qs = qs.filter(created_at__date__gte=self.generated_from_date)
+
+        if self.generated_to_date:
+            qs = qs.filter(created_at__date__lte=self.generated_to_date)
+
+        return qs
+
+
+# Convenience alias
+Campaign = EmailCampaign

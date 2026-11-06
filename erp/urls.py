@@ -5,6 +5,8 @@ from erp.views import (
     leads_manage_web_view,
     leads_add_web_view,
     callbacks_web_view,
+    campaigns_web_view,
+    reports_web_view,
     SignupAPIView,
     VerifyOTPAPIView,
     ResendOTPAPIView,
@@ -15,6 +17,10 @@ from erp.views import (
     LeadDetailAPIView,
     ScheduleCallbackListCreateAPIView,
     ScheduleCallbackDetailAPIView,
+    EmailCampaignListCreateAPIView,
+    EmailCampaignDetailAPIView,
+    EmailCampaignLeadsAPIView,
+    LeadGenerationReportAPIView,
     LoginAPIView,
     LogoutAPIView,
 )
@@ -83,6 +89,31 @@ urlpatterns = [
     path("callbacks/<int:pk>/", ScheduleCallbackDetailAPIView.as_view(), name="callback_detail"),
     path("callbacks/<int:pk>/update/", ScheduleCallbackDetailAPIView.as_view(), name="callback_update"),
     path("callbacks/<int:pk>/delete/", ScheduleCallbackDetailAPIView.as_view(), name="callback_delete"),
+
+    # REST APIs - Email Campaigns (CRUD)
+    path("api/campaigns/", EmailCampaignListCreateAPIView.as_view(), name="api_campaigns"),
+    path("api/campaigns/create/", EmailCampaignListCreateAPIView.as_view(), name="api_campaign_create"),
+    path("api/campaigns/<int:pk>/", EmailCampaignDetailAPIView.as_view(), name="api_campaign_detail"),
+    path("api/campaigns/<int:pk>/update/", EmailCampaignDetailAPIView.as_view(), name="api_campaign_update"),
+    path("api/campaigns/<int:pk>/delete/", EmailCampaignDetailAPIView.as_view(), name="api_campaign_delete"),
+    path("api/campaigns/<int:pk>/leads/", EmailCampaignLeadsAPIView.as_view(), name="api_campaign_leads"),
+
+    # Web / Alias paths
+    path("campaigns/", campaigns_web_view, name="campaigns"),
+    path("campaigns/create/", campaigns_web_view, name="campaign_create"),
+    path("campaigns/<int:pk>/", EmailCampaignDetailAPIView.as_view(), name="campaign_detail"),
+    path("campaigns/<int:pk>/update/", EmailCampaignDetailAPIView.as_view(), name="campaign_update"),
+    path("campaigns/<int:pk>/delete/", EmailCampaignDetailAPIView.as_view(), name="campaign_delete"),
+
+    # REST APIs - Department Reports (Lead Generation Report)
+    path("api/reports/lead-generation/", LeadGenerationReportAPIView.as_view(), name="api_lead_generation_report"),
+    path("api/reports/overview/", LeadGenerationReportAPIView.as_view(), name="api_reports_overview"),
+    path("api/reports/", LeadGenerationReportAPIView.as_view(), name="api_reports"),
+
+    # Web / Alias paths - Reports
+    path("reports/", reports_web_view, name="reports"),
+    path("reports/lead-generation/", reports_web_view, name="reports_lead_generation"),
+    path("reports/overview/", reports_web_view, name="reports_overview"),
 
     # REST APIs - Auth Session & JWT
     path("api/login/", LoginAPIView.as_view(), name="api_login"),

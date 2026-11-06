@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 
-from erp.models import EmailOTP, Lead, ScheduleCallback
+from erp.models import EmailOTP, Lead, ScheduleCallback, EmailCampaign
 from erp.utils import verify_password_reset_token
 
 User = get_user_model()
@@ -407,5 +407,146 @@ class ScheduleCallbackSerializer(serializers.ModelSerializer):
             resolved_lead = data.get("lead") or (self.instance.lead if self.instance else None)
             if resolved_lead and resolved_lead.client_contact_number:
                 data["phone"] = resolved_lead.client_contact_number
+
+        return data
+
+
+# --- Email Campaign Serializer ---
+
+class EmailCampaignSerializer(serializers.ModelSerializer):
+    campaign_name = serializers.CharField(source="name", required=False)
+    campaign_id = serializers.SerializerMethodField(read_only=True)
+    created_by_name = serializers.SerializerMethodField(read_only=True)
+    audience_summary = serializers.CharField(read_only=True)
+    recipients_count = serializers.IntegerField(source="matching_leads_count", read_only=True)
+
+    lead_type = serializers.ChoiceField(
+        choices=EmailCampaign.LEAD_TYPE_CHOICES,
+        default="Any",
+        required=False
+    )
+    category = serializers.ChoiceField(
+        choices=EmailCampaign.CATEGORY_CHOICES,
+        default="Any",
+        required=False
+    )
+    country = serializers.ChoiceField(
+        choices=EmailCampaign.COUNTRY_CHOICES,
+        default="Any",
+        required=False
+    )
+    client_is = serializers.ChoiceField(
+        choices=EmailCampaign.CLIENT_IS_CHOICES,
+        default="Any",
+        required=False
+    )
+    sales_status = serializers.ChoiceField(
+        choices=EmailCampaign.SALES_STATUS_CHOICES,
+        default="Any (except Lost/Closed)",
+        required=False
+    )
+
+    generated_from_date = serializers.DateField(
+        input_formats=["%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"],
+        required=False,
+        allow_null=True
+    )
+    generated_to_date = serializers.DateField(
+        input_formats=["%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"],
+        required=False,
+        allow_null=True
+    )
+
+    class Meta:
+        model = EmailCampaign
+        fields = [
+            "id",
+            "campaign_id",
+            "campaign_name",
+            "lead_type",
+            "category",
+            "country",
+            "client_is",
+            "sales_status",
+            "generated_from_date",
+            "generated_to_date",
+            "subject",
+            "message",
+            "status",
+            "audience_summary",
+            "recipients_count",
+            "created_by_name",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "campaign_id",
+            "audience_summary",
+            "recipients_count",
+            "created_by_name",
+            "created_at",
+            "updated_at",
+        ]
+        extra_kwargs = {
+            "name": {"required": False},
+        }
+
+    def get_campaign_id(self, obj):
+        return obj.campaign_id
+
+    def get_created_by_name(self, obj):
+        if obj.created_by:
+            name = f"{obj.created_by.first_name} {obj.created_by.last_name}".strip()
+            return name or obj.created_by.email
+        return None
+
+    def to_internal_value(self, data):
+        mutable_data = data.copy() if hasattr(data, "copy") else dict(data)
+
+        # Flexible alias for Campaign name
+        if "campaign_name" in mutable_data and not mutable_data.get("name"):
+            mutable_data["name"] = mutable_data["campaign_name"]
+
+        # Flexible alias for Category
+        if "project_category" in mutable_data and "category" not in mutable_data:
+            mutable_data["category"] = mutable_data["project_category"]
+
+        # Flexible alias for Country
+        if "country_name" in mutable_data and "country" not in mutable_data:
+            mutable_data["country"] = mutable_data["country_name"]
+
+        # Flexible alias for Generated between dates
+        if "generated_between_from" in mutable_data and "generated_from_date" not in mutable_data:
+            mutable_data["generated_from_date"] = mutable_data["generated_between_from"]
+        if "generated_between_to" in mutable_data and "generated_to_date" not in mutable_data:
+            mutable_data["generated_to_date"] = mutable_data["generated_between_to"]
+        if "start_date" in mutable_data and "generated_from_date" not in mutable_data:
+            mutable_data["generated_from_date"] = mutable_data["start_date"]
+        if "end_date" in mutable_data and "generated_to_date" not in mutable_data:
+            mutable_data["generated_to_date"] = mutable_data["end_date"]
+
+        # Handle empty date strings
+        if mutable_data.get("generated_from_date") == "":
+            mutable_data["generated_from_date"] = None
+        if mutable_data.get("generated_to_date") == "":
+            mutable_data["generated_to_date"] = None
+
+        return super().to_internal_value(mutable_data)
+
+    def validate(self, data):
+        # Ensure at least name or campaign_name is provided on create
+        name = data.get("name")
+        if not name and not self.instance:
+            raise serializers.ValidationError({
+                "campaign_name": "Campaign name is required."
+            })
+
+        from_date = data.get("generated_from_date")
+        to_date = data.get("generated_to_date")
+        if from_date and to_date and from_date > to_date:
+            raise serializers.ValidationError({
+                "generated_between": "Start date cannot be after End date."
+            })
 
         return data

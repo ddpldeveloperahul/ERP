@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from erp.models import User, EmailOTP, Lead, ScheduleCallback
+from erp.models import User, EmailOTP, Lead, ScheduleCallback, EmailCampaign
 
 
 @admin.register(User)
@@ -154,6 +154,43 @@ class ScheduleCallbackAdmin(admin.ModelAdmin):
         "notes",
     )
     readonly_fields = (
+        "created_at",
+        "updated_at",
+    )
+
+
+@admin.register(EmailCampaign)
+class EmailCampaignAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "name",
+        "lead_type",
+        "category",
+        "country",
+        "client_is",
+        "sales_status",
+        "status",
+        "total_leads_matched",
+        "created_by",
+        "created_at",
+    )
+    list_filter = (
+        "status",
+        "lead_type",
+        "category",
+        "country",
+        "client_is",
+        "created_at",
+    )
+    search_fields = (
+        "name",
+        "subject",
+        "message",
+        "category",
+        "country",
+    )
+    readonly_fields = (
+        "total_leads_matched",
         "created_at",
         "updated_at",
     )

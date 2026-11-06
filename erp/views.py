@@ -5,6 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.db.models import Q, Case, When, Value, IntegerField, Count
+import datetime
+from datetime import timedelta
 
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -14,7 +16,7 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
-from erp.models import EmailOTP, Lead, ScheduleCallback
+from erp.models import EmailOTP, Lead, ScheduleCallback, EmailCampaign
 from erp.utils import (
     send_otp_email,
     generate_password_reset_token,
@@ -29,6 +31,7 @@ from erp.serializers import (
     ResetPasswordSerializer,
     LeadSerializer,
     ScheduleCallbackSerializer,
+    EmailCampaignSerializer,
 )
 
 User = get_user_model()
@@ -159,6 +162,13 @@ def callbacks_web_view(request, lead_id=None):
     if request.headers.get("Accept", "").startswith("application/json") or request.content_type == "application/json":
         return ScheduleCallbackListCreateAPIView.as_view()(request, lead_id=lead_id)
     return dashboard_view(request, active_tab="callbacks")
+
+
+@login_required(login_url="login")
+def campaigns_web_view(request):
+    if request.headers.get("Accept", "").startswith("application/json") or request.content_type == "application/json":
+        return EmailCampaignListCreateAPIView.as_view()(request)
+    return dashboard_view(request, active_tab="campaigns")
 
 
 # Signup API
@@ -958,6 +968,278 @@ class ScheduleCallbackDetailAPIView(APIView):
         return self.put(request, pk)
 
 
+# --- Email Campaign API Views (CRUD) ---
+
+class EmailCampaignListCreateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """
+        List & Search email campaigns:
+        - Scoped to user unless Admin/Superuser
+        - Search (?search= or ?q=) across name, subject, message, category, country, lead_type, status, campaign_id
+        - Attribute filters (?status=, ?lead_type=, ?category=, ?country=, ?client_is=, ?scope=)
+        - Ordering (?ordering=)
+        - Pagination (?page= & ?page_size=)
+        """
+        user = request.user
+        if getattr(user, "role", "") == "ADMIN" or user.is_superuser:
+            campaigns = EmailCampaign.objects.all()
+        else:
+            campaigns = EmailCampaign.objects.filter(created_by=user)
+
+        # 1. Scope filter (?scope=my vs ?scope=team)
+        scope = request.query_params.get("scope")
+        if scope and scope.lower() in ["my", "me", "personal"]:
+            campaigns = campaigns.filter(created_by=user)
+
+        # 2. Search (?search= or ?q=)
+        search_query = request.query_params.get("search") or request.query_params.get("q")
+        if search_query:
+            search_query = search_query.strip()
+            tokens = search_query.split()
+            for token in tokens:
+                token_q = (
+                    Q(name__icontains=token)
+                    | Q(subject__icontains=token)
+                    | Q(message__icontains=token)
+                    | Q(category__icontains=token)
+                    | Q(country__icontains=token)
+                    | Q(lead_type__icontains=token)
+                    | Q(client_is__icontains=token)
+                    | Q(status__icontains=token)
+                )
+                if token.isdigit():
+                    token_q |= Q(id=int(token))
+                elif token.upper().startswith("CAMP-"):
+                    num_str = token.upper().replace("CAMP-", "").lstrip("0")
+                    if num_str.isdigit():
+                        token_q |= Q(id=int(num_str))
+
+                campaigns = campaigns.filter(token_q)
+
+        # 3. Attribute filters
+        status_param = request.query_params.get("status")
+        if status_param:
+            campaigns = campaigns.filter(status__iexact=status_param.strip())
+
+        lead_type_param = request.query_params.get("lead_type")
+        if lead_type_param:
+            campaigns = campaigns.filter(lead_type__iexact=lead_type_param.strip())
+
+        category_param = request.query_params.get("category")
+        if category_param:
+            campaigns = campaigns.filter(category__icontains=category_param.strip())
+
+        country_param = request.query_params.get("country")
+        if country_param:
+            campaigns = campaigns.filter(country__icontains=country_param.strip())
+
+        client_is_param = request.query_params.get("client_is")
+        if client_is_param:
+            campaigns = campaigns.filter(client_is__iexact=client_is_param.strip())
+
+        # 4. Ordering
+        ordering = request.query_params.get("ordering", "-created_at")
+        valid_orders = [
+            "created_at", "-created_at",
+            "name", "-name",
+            "status", "-status",
+            "total_leads_matched", "-total_leads_matched"
+        ]
+        if ordering in valid_orders:
+            campaigns = campaigns.order_by(ordering)
+        else:
+            campaigns = campaigns.order_by("-created_at")
+
+        # 5. Pagination
+        total_count = campaigns.count()
+        page = request.query_params.get("page")
+        page_size = request.query_params.get("page_size", 20)
+
+        if page:
+            try:
+                page = int(page)
+                page_size = int(page_size)
+                start = (page - 1) * page_size
+                end = start + page_size
+                paginated = campaigns[start:end]
+                serializer = EmailCampaignSerializer(paginated, many=True)
+                return Response({
+                    "success": True,
+                    "count": total_count,
+                    "page": page,
+                    "page_size": page_size,
+                    "total_pages": (total_count + page_size - 1) // page_size if page_size > 0 else 1,
+                    "data": serializer.data
+                }, status=status.HTTP_200_OK)
+            except (ValueError, TypeError):
+                pass
+
+        serializer = EmailCampaignSerializer(campaigns, many=True)
+        return Response({
+            "success": True,
+            "count": total_count,
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        """
+        Create a new Email Campaign (POST)
+        """
+        serializer = EmailCampaignSerializer(data=request.data)
+        if serializer.is_valid():
+            campaign = serializer.save(created_by=request.user)
+            campaign.total_leads_matched = campaign.get_matching_leads_queryset().count()
+            campaign.save(update_fields=["total_leads_matched"])
+            return Response({
+                "success": True,
+                "message": f"Email campaign '{campaign.name}' created successfully.",
+                "data": EmailCampaignSerializer(campaign).data
+            }, status=status.HTTP_201_CREATED)
+
+        return Response({
+            "success": False,
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EmailCampaignDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk, user):
+        try:
+            if getattr(user, "role", "") == "ADMIN" or user.is_superuser:
+                return EmailCampaign.objects.get(pk=pk)
+            return EmailCampaign.objects.get(pk=pk, created_by=user)
+        except EmailCampaign.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        campaign = self.get_object(pk, request.user)
+        if not campaign:
+            return Response({
+                "success": False,
+                "message": "Campaign not found or permission denied."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = EmailCampaignSerializer(campaign)
+        return Response({
+            "success": True,
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        campaign = self.get_object(pk, request.user)
+        if not campaign:
+            return Response({
+                "success": False,
+                "message": "Campaign not found or permission denied."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = EmailCampaignSerializer(campaign, data=request.data, partial=True)
+        if serializer.is_valid():
+            updated = serializer.save()
+            updated.total_leads_matched = updated.get_matching_leads_queryset().count()
+            updated.save(update_fields=["total_leads_matched"])
+            return Response({
+                "success": True,
+                "message": "Campaign updated successfully.",
+                "data": EmailCampaignSerializer(updated).data
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            "success": False,
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        return self.put(request, pk)
+
+    def delete(self, request, pk):
+        campaign = self.get_object(pk, request.user)
+        if not campaign:
+            return Response({
+                "success": False,
+                "message": "Campaign not found or permission denied."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        camp_id = campaign.campaign_id or f"ID #{campaign.id}"
+        camp_name = campaign.name
+        campaign.delete()
+
+        return Response({
+            "success": True,
+            "message": f"Campaign '{camp_name}' ({camp_id}) deleted successfully.",
+            "data": {
+                "id": pk,
+                "campaign_id": camp_id
+            }
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request, pk):
+        if "delete" in request.path:
+            return self.delete(request, pk)
+        return self.put(request, pk)
+
+
+class EmailCampaignLeadsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        """
+        Get all leads matching an existing campaign's audience
+        """
+        try:
+            if getattr(request.user, "role", "") == "ADMIN" or request.user.is_superuser:
+                campaign = EmailCampaign.objects.get(pk=pk)
+            else:
+                campaign = EmailCampaign.objects.get(pk=pk, created_by=request.user)
+        except EmailCampaign.DoesNotExist:
+            return Response({
+                "success": False,
+                "message": "Campaign not found or permission denied."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        matching_qs = campaign.get_matching_leads_queryset(user=request.user)
+        count = matching_qs.count()
+
+        page = request.query_params.get("page")
+        page_size = request.query_params.get("page_size", 50)
+        if page:
+            try:
+                page = int(page)
+                page_size = int(page_size)
+                start = (page - 1) * page_size
+                end = start + page_size
+                matching_qs = matching_qs[start:end]
+            except (ValueError, TypeError):
+                pass
+
+        leads_data = [
+            {
+                "id": lead.id,
+                "lead_id": lead.lead_id,
+                "client_full_name": lead.client_full_name,
+                "client_email": lead.client_email,
+                "client_company_name": lead.client_company_name,
+                "lead_type": lead.lead_type,
+                "project_category": lead.project_category,
+                "country_name": lead.country_name,
+                "status": lead.status,
+            }
+            for lead in matching_qs
+        ]
+
+        return Response({
+            "success": True,
+            "campaign_id": campaign.campaign_id,
+            "campaign_name": campaign.name,
+            "matching_leads_count": count,
+            "data": leads_data
+        }, status=status.HTTP_200_OK)
+
+
 # Login API View (Handles both Web UI & API requests)
 class LoginAPIView(APIView):
     permission_classes = [AllowAny]
@@ -1051,3 +1333,198 @@ class LogoutAPIView(APIView):
             "success": True,
             "message": "Logout successful."
         }, status=status.HTTP_200_OK)
+
+
+# --- Department Reports: Lead Generation Report API & Web Views ---
+
+class LeadGenerationReportAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        is_admin = getattr(user, "role", "") == "ADMIN" or user.is_superuser
+        if is_admin:
+            leads = Lead.objects.all()
+        else:
+            leads = Lead.objects.filter(created_by=user)
+
+        now = timezone.now()
+        today = now.date()
+        start_of_month = today.replace(day=1)
+
+        date_from_str = request.query_params.get("date_from") or request.query_params.get("start_date")
+        date_to_str = request.query_params.get("date_to") or request.query_params.get("end_date")
+
+        def parse_date(d_str):
+            if not d_str:
+                return None
+            for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%Y/%m/%d", "%d/%m/%Y"):
+                try:
+                    return datetime.datetime.strptime(d_str.strip(), fmt).date()
+                except ValueError:
+                    continue
+            return None
+
+        date_from = parse_date(date_from_str) if date_from_str else start_of_month
+        date_to = parse_date(date_to_str) if date_to_str else today
+
+        if date_from and date_to and date_from > date_to:
+            date_from, date_to = date_to, date_from
+
+        if date_from:
+            leads = leads.filter(created_at__date__gte=date_from)
+        if date_to:
+            leads = leads.filter(created_at__date__lte=date_to)
+
+        total_leads = leads.count()
+        hot_leads = leads.filter(lead_type__iexact="Hot").count()
+        worked_upon = leads.exclude(status__iexact="Open").count()
+        converted = leads.filter(status__iexact="Converted").count()
+        conversion_pct = round((converted / total_leads * 100), 1) if total_leads > 0 else 0.0
+
+        # Leads per day (day by day in date_from -> date_to range)
+        leads_per_day = []
+        if date_from and date_to:
+            delta = (date_to - date_from).days
+            step_days = min(max(delta + 1, 1), 62)
+            for i in range(step_days):
+                curr_date = date_from + timedelta(days=i)
+                day_leads_count = leads.filter(created_at__date=curr_date).count()
+                leads_per_day.append({
+                    "date": curr_date.strftime("%Y-%m-%d"),
+                    "day": curr_date.strftime("%d"),
+                    "count": day_leads_count,
+                })
+
+        # By Executive Table
+        by_executive = []
+        creator_ids = set(leads.values_list("created_by", flat=True))
+        for c_id in creator_ids:
+            if not c_id:
+                continue
+            c_user = User.objects.filter(id=c_id).first()
+            if not c_user:
+                continue
+            c_leads = leads.filter(created_by=c_user)
+            c_gen = c_leads.count()
+            c_hot = c_leads.filter(lead_type__iexact="Hot").count()
+            c_warm = c_leads.filter(lead_type__iexact="Warm").count()
+            c_worked = c_leads.exclude(status__iexact="Open").count()
+            c_conv = c_leads.filter(status__iexact="Converted").count()
+            c_conv_pct = f"{round((c_conv / c_gen * 100))}%" if c_gen > 0 else "0%"
+            c_name = f"{c_user.first_name} {c_user.last_name}".strip() or c_user.email.split("@")[0].capitalize()
+            by_executive.append({
+                "executive": c_name,
+                "generated": c_gen,
+                "hot": c_hot,
+                "warm": c_warm,
+                "worked_by_sales": c_worked,
+                "converted": c_conv,
+                "conversion": c_conv_pct,
+            })
+        by_executive.sort(key=lambda x: x["generated"], reverse=True)
+
+        # 1. Project Category Breakdown
+        category_counts = leads.values("project_category").annotate(count=Count("id")).order_by("-count")
+        by_project_category = [{"name": item["project_category"] or "Other", "count": item["count"]} for item in category_counts]
+
+        # 2. Source Breakdown
+        source_counts = leads.values("lead_generated_from").annotate(count=Count("id")).order_by("-count")
+        by_source = [{"name": item["lead_generated_from"] or "Direct", "count": item["count"]} for item in source_counts]
+
+        # 3. Country Breakdown
+        country_counts = leads.values("country_name").annotate(count=Count("id")).order_by("-count")
+        by_country = [{"name": item["country_name"] or "Unknown", "count": item["count"]} for item in country_counts]
+
+        # 4. Lead Type Breakdown
+        type_counts = leads.values("lead_type").annotate(count=Count("id")).order_by("-count")
+        by_lead_type = [{"name": item["lead_type"] or "Cold", "count": item["count"]} for item in type_counts]
+
+        # 5. Call Status Breakdown
+        call_status_counts = {"Answered": 0, "Whatsapp Only": 0, "Not Answered": 0, "Call back later": 0, "Busy": 0}
+        callbacks_qs = ScheduleCallback.objects.filter(lead__in=leads)
+        lead_callback_map = {}
+        for cb in callbacks_qs:
+            lead_callback_map.setdefault(cb.lead_id, []).append(cb)
+
+        for l in leads:
+            cbs = lead_callback_map.get(l.id, [])
+            status_assigned = False
+            for cb in cbs:
+                notes_lower = (cb.notes or "").lower()
+                if "whatsapp" in notes_lower or l.lead_generated_from == "WhatsApp":
+                    call_status_counts["Whatsapp Only"] += 1
+                    status_assigned = True
+                    break
+                elif "busy" in notes_lower:
+                    call_status_counts["Busy"] += 1
+                    status_assigned = True
+                    break
+                elif "not answered" in notes_lower or "no answer" in notes_lower:
+                    call_status_counts["Not Answered"] += 1
+                    status_assigned = True
+                    break
+                elif cb.status == "Pending":
+                    call_status_counts["Call back later"] += 1
+                    status_assigned = True
+                    break
+                elif cb.status == "Completed":
+                    call_status_counts["Answered"] += 1
+                    status_assigned = True
+                    break
+
+            if not status_assigned:
+                if l.lead_generated_from == "WhatsApp":
+                    call_status_counts["Whatsapp Only"] += 1
+                elif l.status in ["In Progress", "Converted", "Closed"]:
+                    call_status_counts["Answered"] += 1
+                elif l.status == "Lost":
+                    call_status_counts["Not Answered"] += 1
+                elif l.next_follow_up == "Yes":
+                    call_status_counts["Call back later"] += 1
+                else:
+                    call_status_counts["Answered"] += 1
+
+        by_call_status = [{"name": k, "count": v} for k, v in sorted(call_status_counts.items(), key=lambda x: x[1], reverse=True) if v > 0]
+        if not by_call_status:
+            by_call_status = [{"name": k, "count": v} for k, v in call_status_counts.items()]
+
+        # 6. Passed to Sales Executive
+        passed_to_counts = []
+        for exec_info in by_executive:
+            passed_to_counts.append({"name": exec_info["executive"], "count": exec_info["generated"]})
+
+        serializer = LeadSerializer(leads[:500], many=True)
+
+        return Response({
+            "success": True,
+            "data": {
+                "date_from": date_from.strftime("%Y-%m-%d"),
+                "date_to": date_to.strftime("%Y-%m-%d"),
+                "date_from_display": date_from.strftime("%d-%m-%Y"),
+                "date_to_display": date_to.strftime("%d-%m-%Y"),
+                "summary": {
+                    "leads_generated": total_leads,
+                    "hot_leads": hot_leads,
+                    "worked_upon": worked_upon,
+                    "converted": converted,
+                    "conversion_pct": conversion_pct,
+                },
+                "leads_per_day": leads_per_day,
+                "by_executive": by_executive,
+                "by_project_category": by_project_category,
+                "by_source": by_source,
+                "by_country": by_country,
+                "by_lead_type": by_lead_type,
+                "by_call_status": by_call_status,
+                "passed_to_executive": passed_to_counts,
+                "leads": serializer.data,
+            }
+        }, status=status.HTTP_200_OK)
+
+
+@login_required(login_url="login")
+def reports_web_view(request):
+    if request.headers.get("Accept", "").startswith("application/json") or request.content_type == "application/json":
+        return LeadGenerationReportAPIView.as_view()(request)
+    return dashboard_view(request, active_tab="reports")
