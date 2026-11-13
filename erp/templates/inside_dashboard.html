@@ -1,0 +1,2510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DR. DESIGN™ - Inside Sales Portal</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg-dark-top: #151d2a;
+      --bg-dark-sidebar: #182232;
+      --bg-sidebar-active: #2b3952;
+      --bg-sidebar-hover: rgba(255, 255, 255, 0.06);
+      --bg-main: #f1f5f9;
+      --bg-card: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-sidebar: #cbd5e1;
+      --primary-blue: #2563eb;
+      --primary-orange: #f97316;
+      --primary-green: #10b981;
+      --accent-purple: #7c3aed;
+      --border-color: #e2e8f0;
+      --border-dark: rgba(255, 255, 255, 0.08);
+      --sidebar-width: 250px;
+      --topbar-height: 56px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* =========================================================
+       TOP NAVIGATION BAR
+       ========================================================= */
+    .topbar {
+      height: var(--topbar-height);
+      background-color: var(--bg-dark-top);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex: 1;
+    }
+
+    .brand-logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: #ffffff;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #ffffff;
+    }
+
+    .brand-title sup {
+      font-size: 9px;
+      color: #f59e0b;
+      margin-left: 2px;
+    }
+
+    /* Topbar Search Box */
+    .topbar-search-box {
+      max-width: 420px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      background: #ffffff;
+      border-radius: 6px;
+      padding: 5px 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .topbar-search-input {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 12.5px;
+      color: #334155;
+      background: transparent;
+      font-family: inherit;
+    }
+
+    .topbar-search-input::placeholder {
+      color: #94a3b8;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+
+    .top-time-display {
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+
+    .btn-top-add {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #ffffff;
+      width: 26px;
+      height: 26px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-top-add:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .badge-live {
+      background: #dc2626;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-live::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: #ffffff;
+      border-radius: 50%;
+      animation: pulseLive 1.4s infinite;
+    }
+
+    @keyframes pulseLive {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .top-bell-btn {
+      background: transparent;
+      border: none;
+      color: #f59e0b;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .avatar-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #ea580c;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+    }
+
+    /* User Profile Dropdown */
+    .user-dropdown {
+      position: absolute;
+      top: 52px;
+      right: 18px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border-color);
+      width: 220px;
+      padding: 12px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 1000;
+    }
+
+    .user-dropdown.show {
+      display: flex;
+    }
+
+    .user-dropdown-info {
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 8px;
+    }
+
+    .user-dropdown-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .user-dropdown-email {
+      font-size: 11.5px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    .user-dropdown-role {
+      display: inline-block;
+      margin-top: 6px;
+      background: #e0e7ff;
+      color: #3730a3;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .btn-dropdown-logout {
+      background: #fee2e2;
+      color: #dc2626;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-dropdown-logout:hover {
+      background: #fca5a5;
+    }
+
+    /* =========================================================
+       APP WRAPPER & SIDEBAR
+       ========================================================= */
+    .app-container {
+      display: flex;
+      flex: 1;
+      min-height: calc(100vh - var(--topbar-height));
+      position: relative;
+    }
+
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: var(--bg-dark-sidebar);
+      color: var(--text-sidebar);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      flex-shrink: 0;
+      user-select: none;
+      position: sticky;
+      top: var(--topbar-height);
+      height: calc(100vh - var(--topbar-height));
+      max-height: calc(100vh - var(--topbar-height));
+    }
+
+    .sidebar.collapsed {
+      width: 68px;
+    }
+
+    .sidebar-menu {
+      padding: 14px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .sidebar-menu::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .sidebar-menu::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 12px;
+      border-radius: 6px;
+      color: #e2e8f0;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+
+    .menu-item:hover {
+      background-color: var(--bg-sidebar-hover);
+      color: #ffffff;
+    }
+
+    .menu-item.active {
+      background-color: var(--bg-sidebar-active);
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .menu-item.highlight-border {
+      border-left: 3px solid #f59e0b;
+    }
+
+    .menu-icon {
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+    }
+
+    .menu-title {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .menu-arrow {
+      font-size: 10px;
+      color: #94a3b8;
+      transition: transform 0.2s ease;
+    }
+
+    .menu-group.open > .menu-item .menu-arrow {
+      transform: rotate(90deg);
+    }
+
+    /* Submenu with Vertical Dotted Line */
+    .submenu {
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      margin: 3px 0 6px 18px;
+      padding-left: 10px;
+      border-left: 1px dashed rgba(255, 255, 255, 0.2);
+    }
+
+    .menu-group.open > .submenu {
+      display: flex;
+    }
+
+    .submenu-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 5px;
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .submenu-item:hover {
+      background: var(--bg-sidebar-hover);
+      color: #ffffff;
+    }
+
+    .submenu-item.active {
+      color: #ffffff;
+      background: rgba(43, 57, 82, 0.85);
+      font-weight: 700;
+    }
+
+    .submenu-icon {
+      font-size: 12px;
+      width: 14px;
+      text-align: center;
+      color: #94a3b8;
+    }
+
+    .sidebar-bottom {
+      padding: 12px;
+      border-top: 1px solid var(--border-dark);
+      flex-shrink: 0;
+    }
+
+    .btn-collapse {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 600;
+      background: transparent;
+      border: none;
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-collapse:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar.collapsed .menu-title,
+    .sidebar.collapsed .menu-arrow,
+    .sidebar.collapsed .submenu {
+      display: none !important;
+    }
+
+    /* =========================================================
+       MAIN CONTENT VIEWPORT & TAB PANELS
+       ========================================================= */
+    .main-content {
+      flex: 1;
+      background: var(--bg-main);
+      padding: 20px 24px 80px 24px;
+      overflow-y: auto;
+      min-width: 0;
+    }
+
+    .tab-panel {
+      display: none;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Welcome Banner Card */
+    .welcome-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+
+    .welcome-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .sun-icon-box {
+      width: 36px;
+      height: 36px;
+      background: #fef3c7;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #d97706;
+      flex-shrink: 0;
+    }
+
+    .welcome-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .welcome-sub {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    .welcome-right {
+      text-align: right;
+    }
+
+    .welcome-time {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .welcome-date {
+      font-size: 11.5px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    /* Section Dot Header */
+    .section-dot-title {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 12px;
+    }
+
+    .dot-green {
+      width: 7px;
+      height: 7px;
+      background: #10b981;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* 2-Column Inside Sales Dashboard Layout */
+    .inside-dash-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* LEFT COLUMN: Urgent To-Dos */
+    .left-todos-col {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .todo-box {
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+
+    .todo-header {
+      background: #2563eb;
+      color: #ffffff;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .todo-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .todo-title {
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .todo-tag-updated {
+      background: #f97316;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+
+    .todo-link-right {
+      color: #ffffff;
+      font-size: 11.5px;
+      font-weight: 600;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .todo-link-right:hover {
+      text-decoration: underline;
+    }
+
+    .todo-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .todo-table th {
+      background: #ffffff;
+      color: #64748b;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .todo-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f8fafc;
+      color: #334155;
+    }
+
+    .todo-table tr:hover td {
+      background: #f8fafc;
+    }
+
+    .todo-lead-name {
+      font-weight: 700;
+      color: #1e3a8a;
+    }
+
+    .status-open-text {
+      color: #ea580c;
+      font-weight: 600;
+    }
+
+    .todo-empty-placeholder {
+      padding: 28px 16px;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 12.5px;
+    }
+
+    /* RIGHT COLUMN: 4 KPI Cards + Live Leads Pool */
+    .right-stats-col {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .kpi-2x2-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .kpi-card {
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      padding: 14px 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+
+    .kpi-card.yellow { border-left: 4px solid #f59e0b; }
+    .kpi-card.blue { border-left: 4px solid #3b82f6; }
+    .kpi-card.green { border-left: 4px solid #10b981; }
+    .kpi-card.red { border-left: 4px solid #ef4444; }
+
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: #64748b;
+      line-height: 1.3;
+    }
+
+    .kpi-val {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-top: 6px;
+    }
+
+    .live-pool-card {
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      padding: 18px 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .live-pool-placeholder {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      font-size: 12.5px;
+      font-weight: 500;
+      text-align: center;
+      padding: 30px 10px;
+    }
+
+    /* Floating Action Buttons (Bottom Right) */
+    .fab-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 99;
+    }
+
+    .fab-btn-wrap {
+      position: relative;
+    }
+
+    .fab-badge-new {
+      position: absolute;
+      top: -8px;
+      right: -2px;
+      background: #dc2626;
+      color: #ffffff;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 1px 4px;
+      border-radius: 3px;
+      letter-spacing: 0.3px;
+    }
+
+    .fab-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #10b981;
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    .fab-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 2000;
+      pointer-events: none;
+    }
+
+    .toast {
+      padding: 10px 16px;
+      border-radius: 6px;
+      color: #ffffff;
+      font-size: 12.5px;
+      font-weight: 600;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+      pointer-events: auto;
+      animation: toastIn 0.3s forwards, toastOut 0.3s 3.5s forwards;
+    }
+
+    .toast.info { background: #2563eb; }
+    .toast.success { background: #16a34a; }
+
+    @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+
+    @media (max-width: 1024px) {
+      .inside-dash-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .topbar-search-box { display: none; }
+      .sidebar { position: fixed; height: calc(100vh - var(--topbar-height)); z-index: 95; left: -260px; }
+      .sidebar.mobile-open { left: 0; }
+    }
+
+    /* =========================================================
+       ADD NEW PROJECT MODAL & PILLS
+       ========================================================= */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(2px);
+      z-index: 1500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.show { display: flex; }
+    .modal-box-project {
+      background: #ffffff;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 680px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-color);
+      animation: modalSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalSlide {
+      from { transform: scale(0.96) translateY(8px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .modal-proj-header {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-proj-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .modal-close-btn {
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: #64748b;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 6px;
+    }
+    .modal-close-btn:hover { color: #0f172a; }
+    .modal-proj-body {
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #334155;
+    }
+    .form-label span.req {
+      color: #ef4444;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #0f172a;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      background: #ffffff;
+      box-sizing: border-box;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.18);
+    }
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .team-pills-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-height: 180px;
+      overflow-y: auto;
+      padding: 8px;
+      border: 1px solid #f1f5f9;
+      border-radius: 6px;
+      background: #fafafa;
+    }
+    .team-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 5px 11px;
+      font-size: 11.5px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+    }
+    .team-pill:hover {
+      border-color: #cbd5e1;
+      background: #f8fafc;
+    }
+    .team-pill input[type="checkbox"] {
+      cursor: pointer;
+      accent-color: #f59e0b;
+    }
+    .team-pill .pill-name {
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .team-pill .pill-role {
+      color: #64748b;
+    }
+    .team-pill .pill-dept {
+      color: #94a3b8;
+    }
+    .btn-save-project {
+      background: #f59e0b;
+      color: #0f172a;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 9px 22px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+      align-self: flex-start;
+      margin-top: 4px;
+    }
+    .btn-save-project:hover {
+      background: #d97706;
+      color: #ffffff;
+    }
+    .badge-status {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .badge-status.in-progress { background: #dbeafe; color: #1d4ed8; }
+    .badge-status.completed { background: #dcfce7; color: #15803d; }
+    .badge-status.on-hold { background: #fef3c7; color: #b45309; }
+    .badge-status.pending { background: #f1f5f9; color: #475569; }
+    .badge-status.cancelled { background: #fee2e2; color: #b91c1c; }
+
+    /* Projects Section Target Styling (Image 1 replica) */
+    .proj-stat-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 12.5px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .proj-action-wrap {
+      position: relative;
+      display: inline-block;
+      text-align: right;
+    }
+    .proj-action-btn {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      color: #334155;
+      cursor: pointer;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+    .proj-action-btn:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+    .proj-action-menu {
+      display: none;
+      position: fixed;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.16), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      min-width: 175px;
+      z-index: 9999;
+      overflow: hidden;
+      text-align: left;
+    }
+    .proj-action-menu.show {
+      display: block;
+    }
+    .proj-action-menu a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      font-size: 12px;
+      color: #334155;
+      text-decoration: none;
+      transition: background 0.15s ease;
+      cursor: pointer;
+    }
+    .proj-action-menu a:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+    .proj-stage-badge {
+      padding: 4px 12px;
+      border-radius: 14px;
+      font-size: 11.5px;
+      font-weight: 600;
+      display: inline-block;
+      white-space: nowrap;
+    }
+    .proj-stage-badge.in-progress { background: #e0f2fe; color: #0284c7; }
+    .proj-stage-badge.handover { background: #fef3c7; color: #d97706; }
+    .proj-stage-badge.completed { background: #dcfce7; color: #16a34a; }
+    .proj-stage-badge.not-started { background: #fef9c3; color: #ca8a04; }
+    .proj-stage-badge.pending { background: #f1f5f9; color: #475569; }
+    .proj-stage-badge.cancelled { background: #f3e8ff; color: #9333ea; }
+    .proj-stage-badge.on-hold { background: #fee2e2; color: #dc2626; }
+  </style>
+</head>
+<body>
+
+  <!-- =========================================================
+       TOP NAVIGATION BAR
+       ========================================================= -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <a href="javascript:void(0)" onclick="switchInsideTab('dashboard')" class="brand-logo-wrap">
+        <div class="brand-icon">
+          <!-- Globe & Compass Tool Icon -->
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+        </div>
+        <div class="brand-title">
+          DR. DESIGN<sup>™</sup>
+        </div>
+      </a>
+
+      <!-- Advanced Search Input -->
+      <div class="topbar-search-box">
+        <input type="text" placeholder="Advanced Search — leads, clients, projects," class="topbar-search-input">
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="top-time-display" id="insideLiveClock">{{ time_formatted }}</div>
+      <button class="btn-top-add" title="Quick Add" onclick="showToast('Quick add action triggered.', 'info')">+</button>
+      <div class="badge-live">LIVE</div>
+      <button class="top-bell-btn" title="Notifications" onclick="showToast('No new notifications.', 'info')">🔔</button>
+      <button class="avatar-btn" id="insideAvatarBtn" onclick="toggleInsideDropdown()">
+        {{ avatar_initial|default:"A" }}
+      </button>
+    </div>
+  </header>
+
+  <!-- User Profile Dropdown -->
+  <div class="user-dropdown" id="insideUserDropdown">
+    <div class="user-dropdown-info">
+      <div class="user-dropdown-name">{{ full_name }}</div>
+      <div class="user-dropdown-email">{{ email }}</div>
+      <div class="user-dropdown-role">Inside Sales</div>
+    </div>
+    <a href="{% url 'logout' %}" class="btn-dropdown-logout">
+      ⎋ Sign Out
+    </a>
+  </div>
+
+  <!-- =========================================================
+       APP WRAPPER (SIDEBAR + MAIN VIEWPORT)
+       ========================================================= -->
+  <div class="app-container">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar" id="insideSidebar">
+      <div class="sidebar-menu">
+        
+        <!-- 1. Dashboard -->
+        <a href="javascript:void(0)" class="menu-item active" id="in-nav-dashboard" onclick="switchInsideTab('dashboard')">
+          <div class="menu-icon">▦</div>
+          <span class="menu-title">Dashboard</span>
+        </a>
+
+        <!-- 2. My Prospect/ Invoice -->
+        <div class="menu-group" id="group-prospect">
+          <div class="menu-item" onclick="toggleInsideMenu('group-prospect')">
+            <div class="menu-icon">👤</div>
+            <span class="menu-title">My Prospect/ Invoice</span>
+            <span class="menu-arrow">▸</span>
+          </div>
+          <div class="submenu">
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('add_prospect')">
+              <span class="submenu-icon">⊕</span>
+              <span>Add your Own Prospect/ Lead</span>
+            </a>
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('fresh_invoice')">
+              <span class="submenu-icon">$</span>
+              <span>Generate Fresh-Lead Invoice</span>
+            </a>
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('upsale_invoice')">
+              <span class="submenu-icon">$</span>
+              <span>Generate Upsale Invoice</span>
+            </a>
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('renewal_invoice')">
+              <span class="submenu-icon">$</span>
+              <span>Generate Renewal Invoice</span>
+            </a>
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('manage_payment_requests')">
+              <span class="submenu-icon">⚙</span>
+              <span>Manage Payment Requests</span>
+            </a>
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('marketplace_link')">
+              <span class="submenu-icon">🔗</span>
+              <span>Generate Marketplace Invoice Link</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 3. Leads -->
+        <div class="menu-group" id="group-leads">
+          <div class="menu-item" onclick="toggleInsideMenu('group-leads')">
+            <div class="menu-icon">☰</div>
+            <span class="menu-title">Leads</span>
+            <span class="menu-arrow">▸</span>
+          </div>
+          <div class="submenu">
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('all_leads')">
+              <span class="submenu-icon">•</span>
+              <span>All Leads</span>
+            </a>
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('pending_leads')">
+              <span class="submenu-icon">•</span>
+              <span>Pending Leads</span>
+            </a>
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('callbacks')">
+              <span class="submenu-icon">•</span>
+              <span>Callbacks</span>
+            </a>
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('import_leads')">
+              <span class="submenu-icon">•</span>
+              <span>Import Leads (CSV)</span>
+            </a>
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('assign_leads')">
+              <span class="submenu-icon">•</span>
+              <span>Assign Leads</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 4. Manage Clients -->
+        <div class="menu-group" id="group-clients">
+          <div class="menu-item" onclick="toggleInsideMenu('group-clients')">
+            <div class="menu-icon">👥</div>
+            <span class="menu-title">Manage Clients</span>
+            <span class="menu-arrow">▸</span>
+          </div>
+          <div class="submenu">
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('all_clients')">
+              <span class="submenu-icon">•</span>
+              <span>All Clients</span>
+            </a>
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('add_client')">
+              <span class="submenu-icon">•</span>
+              <span>Add Client</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 5. Manual Payments -->
+        <div class="menu-group" id="group-payments">
+          <div class="menu-item" onclick="toggleInsideMenu('group-payments')">
+            <div class="menu-icon">₹</div>
+            <span class="menu-title">Manual Payments</span>
+            <span class="menu-arrow">▸</span>
+          </div>
+          <div class="submenu">
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('payments_received')">
+              <span class="submenu-icon">•</span>
+              <span>Payments Received</span>
+            </a>
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('record_payment')">
+              <span class="submenu-icon">•</span>
+              <span>Record Payment</span>
+            </a>
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('all_invoices')">
+              <span class="submenu-icon">•</span>
+              <span>All Invoices</span>
+            </a>
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('refund_requests')">
+              <span class="submenu-icon">•</span>
+              <span>Refund Requests</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 6. Projects Addition -->
+        <div class="menu-group" id="group-proj-add">
+          <div class="menu-item" onclick="toggleInsideMenu('group-proj-add')">
+            <div class="menu-icon">☰</div>
+            <span class="menu-title">Projects Addition</span>
+            <span class="menu-arrow">▸</span>
+          </div>
+          <div class="submenu">
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('add_new_project')">
+              <span class="submenu-icon">•</span>
+              <span>Add New Project</span>
+            </a>
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('project_handovers')">
+              <span class="submenu-icon">•</span>
+              <span>Project Handovers</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 7. Projects -->
+        <a href="javascript:void(0)" class="menu-item {% if active_tab == 'projects' %}active{% endif %}" id="in-nav-projects" onclick="switchInsideTab('projects')">
+          <div class="menu-icon">◈</div>
+          <span class="menu-title">Projects</span>
+        </a>
+
+        <!-- 8. Department Reports -->
+        <div class="menu-group" id="group-reports">
+          <div class="menu-item" onclick="toggleInsideMenu('group-reports')">
+            <div class="menu-icon">▥</div>
+            <span class="menu-title">Department Reports</span>
+            <span class="menu-arrow">▸</span>
+          </div>
+          <div class="submenu">
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('sales_report')">
+              <span class="submenu-icon">•</span>
+              <span>Sales Report</span>
+            </a>
+            <a href="javascript:void(0)" class="submenu-item" onclick="switchInsideTab('project_report')">
+              <span class="submenu-icon">•</span>
+              <span>Project Report</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 9. Users & Logins -->
+        <a href="javascript:void(0)" class="menu-item highlight-border" id="in-nav-users" onclick="switchInsideTab('users_logins')">
+          <div class="menu-icon">👔</div>
+          <span class="menu-title">Users & Logins</span>
+        </a>
+
+        <!-- 10. Settings -->
+        <a href="javascript:void(0)" class="menu-item" id="in-nav-settings" onclick="switchInsideTab('settings')">
+          <div class="menu-icon">⚙</div>
+          <span class="menu-title">Settings</span>
+        </a>
+
+      </div>
+
+      <div class="sidebar-bottom">
+        <button class="btn-collapse" onclick="toggleInsideSidebarCollapse()">
+          <span>«</span>
+          <span class="menu-title">Collapse Sidebar</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN VIEWPORT -->
+    <main class="main-content">
+      
+      <!-- =========================================================
+           MAIN INSIDE SALES DASHBOARD (Image 6)
+           ========================================================= -->
+      <section class="tab-panel {% if active_tab != 'projects' and active_tab != 'generic' %}active{% endif %}" id="inside-tab-dashboard">
+        
+        <!-- Welcome Greeting Banner -->
+        <div class="welcome-card">
+          <div class="welcome-left">
+            <div class="sun-icon-box">☀️</div>
+            <div>
+              <h2 class="welcome-title">Good Morning, {{ first_name }}</h2>
+              <p class="welcome-sub">Welcome back — glad to see you today!</p>
+            </div>
+          </div>
+          <div class="welcome-right">
+            <div class="welcome-time" id="insideLiveBannerTime">{{ time_formatted }}</div>
+            <div class="welcome-date">{{ today_formatted }}</div>
+          </div>
+        </div>
+
+        <!-- 2-Column Inside Sales Dashboard Layout -->
+        <div class="inside-dash-grid">
+          
+          <!-- LEFT COLUMN: Urgent To-Dos -->
+          <div class="left-todos-col">
+            <div class="section-dot-title">
+              <span class="dot-green"></span> TODAY'S URGENT TO-DOS
+            </div>
+
+            <!-- Card 1: Callback Requests -->
+            <div class="todo-box">
+              <div class="todo-header">
+                <div class="todo-header-left">
+                  <span style="font-size: 14px;">📞</span>
+                  <div class="todo-title">
+                    Callback Requests ({{ callbacks_count|default:"0" }})
+                  </div>
+                  <span class="todo-tag-updated">Updated</span>
+                </div>
+                <a href="javascript:void(0)" onclick="switchInsideTab('callbacks')" class="todo-link-right">
+                  View CallBack ↗
+                </a>
+              </div>
+
+              {% if urgent_callbacks %}
+              <table class="todo-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>NAME</th>
+                    <th>CALLBACK ID</th>
+                    <th>TYPE</th>
+                    <th>DATE & TIME</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for cb in urgent_callbacks %}
+                  <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td class="todo-lead-name">{{ cb.lead.client_full_name }}</td>
+                    <td>{{ cb.callback_id }}</td>
+                    <td><span style="background: #e0f2fe; color: #0369a1; padding: 2px 7px; border-radius: 4px; font-weight: 600;">{{ cb.type }}</span></td>
+                    <td>{{ cb.date_time|date:"d-m-Y | H:i:s" }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              {% else %}
+              <div class="todo-empty-placeholder">
+                No pending callbacks
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Card 2: Leads To Be Worked Upon -->
+            <div class="todo-box">
+              <div class="todo-header">
+                <div class="todo-header-left">
+                  <span style="font-size: 14px;">📄</span>
+                  <div class="todo-title">
+                    Leads To Be Worked Upon({{ open_leads_count|default:"10" }})
+                  </div>
+                  <span class="todo-tag-updated">Updated</span>
+                </div>
+                <a href="javascript:void(0)" onclick="switchInsideTab('pending_leads')" class="todo-link-right">
+                  View Pending Leads ↗
+                </a>
+              </div>
+
+              <table class="todo-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>LEAD NAME</th>
+                    <th>STATUS</th>
+                    <th>DATE & TIME</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for lead in leads_to_work %}
+                  <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td class="todo-lead-name">{{ lead.client_full_name|default:lead.client_company_name }}</td>
+                    <td><span class="status-open-text">{{ lead.status|default:"Open" }}</span></td>
+                    <td>{{ lead.created_at|date:"d-m-Y | H:i:s" }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td>1</td>
+                    <td class="todo-lead-name">Navigate Saudi</td>
+                    <td><span class="status-open-text">Open</span></td>
+                    <td>06-11-2026 | 10:20:00</td>
+                  </tr>
+                  <tr>
+                    <td>2</td>
+                    <td class="todo-lead-name">Ashish Studio</td>
+                    <td><span class="status-open-text">Open</span></td>
+                    <td>05-11-2026 | 13:23:00</td>
+                  </tr>
+                  <tr>
+                    <td>3</td>
+                    <td class="todo-lead-name">spruce UP</td>
+                    <td><span class="status-open-text">Open</span></td>
+                    <td>05-11-2026 | 12:22:00</td>
+                  </tr>
+                  <tr>
+                    <td>4</td>
+                    <td class="todo-lead-name">peepclub</td>
+                    <td><span class="status-open-text">Open</span></td>
+                    <td>05-11-2026 | 11:21:00</td>
+                  </tr>
+                  <tr>
+                    <td>5</td>
+                    <td class="todo-lead-name">Spacebot</td>
+                    <td><span class="status-open-text">Open</span></td>
+                    <td>04-11-2026 | 15:25:00</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+
+          <!-- RIGHT COLUMN: 4 Metric Cards + Live Leads Pool -->
+          <div class="right-stats-col">
+            
+            <!-- 4 Metric Cards in 2x2 Grid -->
+            <div class="kpi-2x2-grid">
+              
+              <!-- 1. Company collections this month -->
+              <div class="kpi-card yellow">
+                <div class="kpi-label">Company collections this month</div>
+                <div class="kpi-val">₹{{ company_collections_this_month|default:"0" }}</div>
+              </div>
+
+              <!-- 2. Open leads -->
+              <div class="kpi-card blue">
+                <div class="kpi-label">Open leads</div>
+                <div class="kpi-val">{{ open_leads_count|default:"18" }}</div>
+              </div>
+
+              <!-- 3. Projects in progress -->
+              <div class="kpi-card green">
+                <div class="kpi-label">Projects in progress</div>
+                <div class="kpi-val">{{ projects_in_progress_count|default:"3" }}</div>
+              </div>
+
+              <!-- 4. Pending payment requests -->
+              <div class="kpi-card red">
+                <div class="kpi-label">Pending payment requests</div>
+                <div class="kpi-val">{{ pending_payment_requests_count|default:"1" }}</div>
+              </div>
+
+            </div>
+
+            <!-- MY LIVE LEADS POOL -->
+            <div class="live-pool-card">
+              <div class="section-dot-title">
+                <span class="dot-green"></span> MY LIVE LEADS POOL
+              </div>
+              <div class="live-pool-placeholder">
+                No live leads in your pool
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- Generic Placeholder Tab for Submenu Views -->
+      <section class="tab-panel" id="inside-tab-generic">
+        <div class="welcome-card">
+          <div class="welcome-left">
+            <div class="sun-icon-box">📁</div>
+            <div>
+              <h2 class="welcome-title" id="genericViewTitle">Section Overview</h2>
+              <p class="welcome-sub" id="genericViewDesc">Module interface ready for Inside Sales workflows.</p>
+            </div>
+          </div>
+          <button class="btn-top-add" onclick="switchInsideTab('dashboard')" style="width: auto; padding: 6px 14px; font-size: 12px; background: #2563eb;">
+            ← Back to Dashboard
+          </button>
+        </div>
+
+        <div style="background: #ffffff; border-radius: 8px; border: 1px solid var(--border-color); padding: 40px; text-align: center; color: #64748b;">
+          <div style="font-size: 32px; margin-bottom: 12px;">🚧</div>
+          <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 6px;" id="genericBoxHeading">Module Ready</h3>
+          <p style="font-size: 13px; max-width: 500px; margin: 0 auto;">This section template is configured for Inside Sales. API endpoints and CRUD workflows can be connected in the next step as requested.</p>
+        </div>
+      </section>
+
+      <!-- Projects Management Tab Panel (Matching Image 1 Design) -->
+      <section class="tab-panel {% if active_tab == 'projects' %}active{% endif %}" id="inside-tab-projects">
+        <!-- Top Header: Title & Add New Project Button -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 16px; color: #1e293b;">❖</span>
+            <h2 style="font-size: 20px; font-weight: 700; color: #0f172a; margin: 0; letter-spacing: -0.3px;">Projects</h2>
+          </div>
+          <button type="button" onclick="openAddProjectModal()" style="display: inline-flex; align-items: center; gap: 6px; background: #ffffff; color: #047857; border: 1.5px solid #10b981; border-radius: 6px; padding: 7px 18px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#ecfdf5'" onmouseout="this.style.background='#ffffff'">
+            Add New Project <span style="font-size: 15px; font-weight: 600; line-height: 1;">+</span>
+          </button>
+        </div>
+
+        <!-- 6 Metrics Counters Card (Image 1 Style) -->
+        <div style="background: #ffffff; border-radius: 8px; border: 1px solid var(--border-color); padding: 22px 28px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); row-gap: 22px; column-gap: 28px;">
+            <!-- Row 1 -->
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="proj-stat-circle" id="statCircleTotal" style="background: #52525b;">{{ proj_total|default:0 }}</span>
+              <span style="font-size: 13.5px; color: #475569; font-weight: 500;">Total Projects</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="proj-stat-circle" id="statCircleOverdue" style="background: #f97316;">{{ proj_overdue|default:0 }}</span>
+              <span style="font-size: 13.5px; color: #475569; font-weight: 500;">Overdue Projects</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="proj-stat-circle" id="statCircleNotStarted" style="background: #eab308;">{{ proj_not_started|default:0 }}</span>
+              <span style="font-size: 13.5px; color: #475569; font-weight: 500;">Not Started Projects</span>
+            </div>
+
+            <!-- Row 2 -->
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="proj-stat-circle" id="statCircleCompleted" style="background: #10b981;">{{ proj_completed|default:0 }}</span>
+              <span style="font-size: 13.5px; color: #475569; font-weight: 500;">Completed Projects</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="proj-stat-circle" id="statCircleInProgress" style="background: #0ea5e9;">{{ proj_in_progress|default:0 }}</span>
+              <span style="font-size: 13.5px; color: #475569; font-weight: 500;">In Progress Projects</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="proj-stat-circle" id="statCircleCanceled" style="background: #a855f7;">{{ proj_canceled|default:0 }}</span>
+              <span style="font-size: 13.5px; color: #475569; font-weight: 500;">Canceled Projects</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Projects Table Card -->
+        <div style="background: #ffffff; border-radius: 8px; border: 1px solid var(--border-color); padding: 20px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+          <!-- Top Controls: Show entries & Search -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #334155;">
+              <span>Show</span>
+              <select id="projectsPageSize" onchange="changeProjectsPageSize()" style="padding: 4px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; color: #1e293b; background: #ffffff; outline: none; cursor: pointer; height: 32px;">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+              <span>entries</span>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #334155;">
+              <label for="projectsSearchInput" style="font-weight: 500;">Search:</label>
+              <input type="text" id="projectsSearchInput" class="form-input" style="width: 200px; height: 32px; padding: 4px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none;" oninput="debounceProjectSearch()" placeholder="">
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;" id="projectsTable">
+              <thead>
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                  <th style="padding: 12px 10px; font-size: 11px; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px; width: 40px;">#</th>
+                  <th style="padding: 12px 14px; font-size: 11px; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px; width: 175px;">PROJECT ID</th>
+                  <th style="padding: 12px 14px; font-size: 11px; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px;">PROJECT NAME</th>
+                  <th style="padding: 12px 14px; font-size: 11px; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px; width: 115px;">DEADLINE</th>
+                  <th style="padding: 12px 14px; font-size: 11px; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px; width: 160px;">COMPLETION</th>
+                  <th style="padding: 12px 14px; font-size: 11px; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px; width: 95px;">MANAGER</th>
+                  <th style="padding: 12px 14px; font-size: 11px; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px; width: 115px;">STAGE</th>
+                  <th style="padding: 12px 14px; font-size: 11px; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px; width: 95px; text-align: right;">ACTION</th>
+                </tr>
+              </thead>
+              <tbody id="projectsTableBody">
+                <tr><td colspan="8" style="text-align: center; color: #94a3b8; padding: 28px;">Loading projects...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Footer -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; font-size: 12.5px; color: #64748b;" id="projectsPaginationFooter">
+            <span id="projectsCountLabel">Showing 0 of 0 entries</span>
+            <div id="projectsPaginationControls" style="display: flex; gap: 4px;"></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Floating Action Buttons -->
+  <div class="fab-container">
+    <div class="fab-btn-wrap">
+      <span class="fab-badge-new">New</span>
+      <button class="fab-btn" onclick="toggleInsideSidebarCollapse()" title="Toggle Sidebar">
+        ≡
+      </button>
+    </div>
+    <div class="fab-btn-wrap">
+      <span class="fab-badge-new">New</span>
+      <button class="fab-btn" onclick="showToast('Add Prospect/Lead modal', 'info')" title="Add Lead">
+        +
+      </button>
+    </div>
+    <div class="fab-btn-wrap">
+      <span class="fab-badge-new">New</span>
+      <button class="fab-btn" onclick="showToast('Callback schedule modal', 'info')" title="Callbacks">
+        📞
+      </button>
+    </div>
+  </div>
+
+  <!-- Add / Edit Project Modal -->
+  <div class="modal-backdrop" id="addProjectModal">
+    <div class="modal-box-project">
+      <div class="modal-proj-header">
+        <h3 class="modal-proj-title" id="projModalTitle">Add New Project</h3>
+        <button class="modal-close-btn" onclick="closeAddProjectModal()">&times;</button>
+      </div>
+      <form id="projectForm" onsubmit="event.preventDefault(); submitProjectForm();" class="modal-proj-body">
+        <input type="hidden" id="proj_edit_id" value="">
+
+        <!-- Client * -->
+        <div class="form-group">
+          <label class="form-label">Client <span class="req">*</span></label>
+          <select id="proj_client" class="form-select" required>
+            <option value="">Select client</option>
+            {% for c in clients %}
+            <option value="{{ c.id }}">{{ c.client_name }}{% if c.company_name %} ({{ c.company_name }}){% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Project name * -->
+        <div class="form-group">
+          <label class="form-label">Project name <span class="req">*</span></label>
+          <input type="text" id="proj_name" class="form-input" placeholder="Project name" required>
+        </div>
+
+        <!-- Category & Value -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select id="proj_category" class="form-select">
+              <option value="">Select</option>
+              {% for cat in categories %}
+              <option value="{{ cat }}">{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Value (₹, excl. tax)</label>
+            <input type="number" step="0.01" id="proj_value" class="form-input" placeholder="Value (₹, excl. tax)">
+          </div>
+        </div>
+
+        <!-- Start date & Deadline -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">Start date</label>
+            <input type="date" id="proj_start_date" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Deadline <span class="req">*</span></label>
+            <input type="date" id="proj_deadline" class="form-input" required>
+          </div>
+        </div>
+
+        <!-- Project manager -->
+        <div class="form-group">
+          <label class="form-label">Project manager</label>
+          <select id="proj_manager" class="form-select">
+            <option value="">— select —</option>
+            {% for pm in project_managers %}
+            <option value="{{ pm.id }}">{{ pm.display_title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Team members -->
+        <div class="form-group">
+          <label class="form-label">Team members</label>
+          <div class="team-pills-container" id="proj_team_members_container">
+            {% for m in team_members %}
+            <label class="team-pill">
+              <input type="checkbox" name="team_members" value="{{ m.id }}">
+              <span class="pill-name">{{ m.get_full_name|default:m.email }}</span>
+              <span class="pill-role">({% if m.designation %}{{ m.designation }}{% else %}{{ m.get_role_display }}{% endif %})</span>
+              {% if m.department %}<span class="pill-dept">{{ m.department }}</span>{% endif %}
+            </label>
+            {% empty %}
+            <span style="font-size: 11.5px; color: #94a3b8;">No team members available</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Scope / description -->
+        <div class="form-group">
+          <label class="form-label">Scope / description</label>
+          <textarea id="proj_scope" class="form-textarea" rows="3" placeholder="Scope / description"></textarea>
+        </div>
+
+        <!-- Stage & Completion % -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">Stage / Status</label>
+            <select id="proj_status" class="form-select">
+              <option value="In Progress">In Progress</option>
+              <option value="Handover">Handover</option>
+              <option value="Completed">Completed</option>
+              <option value="Not Started">Not Started</option>
+              <option value="On Hold">On Hold</option>
+              <option value="Pending">Pending</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Completion (%)</label>
+            <input type="number" id="proj_completion" min="0" max="100" class="form-input" placeholder="0 - 100" value="0">
+          </div>
+        </div>
+
+        <!-- Save project button -->
+        <button type="submit" class="btn-save-project" id="btnSaveProject">Save project</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Update Progress Modal -->
+  <div class="modal-backdrop" id="updateProgressModal">
+    <div class="modal-box-project" style="max-width: 440px;">
+      <div class="modal-proj-header">
+        <h3 class="modal-proj-title">Update Project Progress</h3>
+        <button type="button" class="modal-close-btn" onclick="closeUpdateProgressModal()">&times;</button>
+      </div>
+      <form id="progressForm" onsubmit="event.preventDefault(); submitProgressForm();" class="modal-proj-body">
+        <input type="hidden" id="prog_proj_id" value="">
+        <div class="form-group">
+          <label class="form-label" style="font-size: 11px; text-transform: uppercase; color: #64748b;">Project</label>
+          <div id="prog_proj_name" style="font-weight: 700; color: #1e3a8a; font-size: 14px;"></div>
+        </div>
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label class="form-label" style="margin: 0;">Progress</label>
+            <span id="prog_pct_val" style="font-weight: 700; color: #f59e0b; font-size: 14px;">0%</span>
+          </div>
+          <input type="range" id="prog_slider" min="0" max="100" value="0" style="width: 100%; accent-color: #f59e0b; cursor: pointer;" oninput="document.getElementById('prog_pct_val').textContent = this.value + '%'">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stage</label>
+          <select id="prog_status" class="form-select">
+            <option value="In Progress">In Progress</option>
+            <option value="Handover">Handover</option>
+            <option value="Completed">Completed</option>
+            <option value="Not Started">Not Started</option>
+            <option value="On Hold">On Hold</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-save-project" id="btnSaveProgress" style="background: #10b981;">Save Progress</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- View Project Details Modal -->
+  <div class="modal-backdrop" id="viewProjectDetailsModal">
+    <div class="modal-box-project" style="max-width: 520px;">
+      <div class="modal-proj-header">
+        <h3 class="modal-proj-title">Project Details</h3>
+        <button type="button" class="modal-close-btn" onclick="closeViewProjectDetailsModal()">&times;</button>
+      </div>
+      <div class="modal-proj-body" id="projectDetailsBody" style="font-size: 13px; line-height: 1.6; max-height: 70vh; overflow-y: auto;">
+        <!-- Filled dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Alert Box -->
+  <div class="toast-container" id="insideToastContainer"></div>
+
+  <script>
+    const AUTH_TOKEN = "{{ access_token }}";
+    const CSRF_TOKEN = "{{ csrf_token }}";
+
+    function getApiHeaders() {
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      if (AUTH_TOKEN) headers['Authorization'] = 'Bearer ' + AUTH_TOKEN;
+      if (CSRF_TOKEN) headers['X-CSRFToken'] = CSRF_TOKEN;
+      return headers;
+    }
+
+    let projectsCache = [];
+    let searchDebounceTimer = null;
+    let projectsPageSize = 10;
+    let projectsCurrentPage = 1;
+
+    function formatProjectDate(dStr) {
+      if (!dStr) return '—';
+      const parts = dStr.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+      return dStr;
+    }
+
+    function isProjectOverdue(dStr, status) {
+      if (!dStr || (status || '').toLowerCase() === 'completed') return false;
+      const today = new Date().toISOString().split('T')[0];
+      return dStr < today;
+    }
+
+    function getPoNumber(p) {
+      if (p.po_number) return p.po_number;
+      if (p.project_id && p.project_id.startsWith('PO/')) return p.project_id;
+      const baseNum = 5800 + (p.id || 1);
+      return `PO/DDT/1/${String(baseNum).padStart(10, '0')}`;
+    }
+
+    function changeProjectsPageSize() {
+      const select = document.getElementById('projectsPageSize');
+      if (select) {
+        projectsPageSize = parseInt(select.value) || 10;
+        projectsCurrentPage = 1;
+        renderProjectsTable(projectsCache);
+      }
+    }
+
+    function updateProjectStats(projects) {
+      const today = new Date().toISOString().split('T')[0];
+      const total = projects.length;
+      const overdue = projects.filter(p => p.deadline && p.deadline < today && (p.status || '').toLowerCase() !== 'completed').length;
+      const notStarted = projects.filter(p => {
+        const st = (p.status || '').toLowerCase();
+        return st === 'not started' || st === 'pending';
+      }).length;
+      const completed = projects.filter(p => (p.status || '').toLowerCase() === 'completed').length;
+      const inProgress = projects.filter(p => (p.status || '').toLowerCase() === 'in progress').length;
+      const canceled = projects.filter(p => {
+        const st = (p.status || '').toLowerCase();
+        return st === 'cancelled' || st === 'canceled';
+      }).length;
+
+      const elTotal = document.getElementById('statCircleTotal');
+      const elOverdue = document.getElementById('statCircleOverdue');
+      const elNotStarted = document.getElementById('statCircleNotStarted');
+      const elCompleted = document.getElementById('statCircleCompleted');
+      const elInProgress = document.getElementById('statCircleInProgress');
+      const elCanceled = document.getElementById('statCircleCanceled');
+
+      if (elTotal) elTotal.textContent = total;
+      if (elOverdue) elOverdue.textContent = overdue;
+      if (elNotStarted) elNotStarted.textContent = notStarted;
+      if (elCompleted) elCompleted.textContent = completed;
+      if (elInProgress) elInProgress.textContent = inProgress;
+      if (elCanceled) elCanceled.textContent = canceled;
+    }
+
+    async function openAddProjectModal(editId = null) {
+      const modal = document.getElementById('addProjectModal');
+      const titleEl = document.getElementById('projModalTitle');
+      const form = document.getElementById('projectForm');
+      const editIdInput = document.getElementById('proj_edit_id');
+
+      form.reset();
+      editIdInput.value = editId || '';
+
+      // Set default start date to today
+      const todayStr = new Date().toISOString().split('T')[0];
+      const startDateInput = document.getElementById('proj_start_date');
+      if (startDateInput) startDateInput.value = todayStr;
+
+      // Clear all team member checkboxes
+      document.querySelectorAll('#proj_team_members_container input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+      if (editId) {
+        titleEl.textContent = 'Edit Project';
+        document.getElementById('btnSaveProject').textContent = 'Update project';
+        try {
+          const res = await fetch(`/api/projects/${editId}/`, { headers: getApiHeaders() });
+          const json = await res.json();
+          if (json.success && json.data) {
+            const p = json.data;
+            if (p.client) document.getElementById('proj_client').value = p.client;
+            document.getElementById('proj_name').value = p.project_name || '';
+            if (p.category) document.getElementById('proj_category').value = p.category;
+            document.getElementById('proj_value').value = p.value || '';
+            if (p.start_date) document.getElementById('proj_start_date').value = p.start_date;
+            if (p.deadline) document.getElementById('proj_deadline').value = p.deadline;
+            if (p.project_manager) document.getElementById('proj_manager').value = p.project_manager;
+            if (p.status && document.getElementById('proj_status')) document.getElementById('proj_status').value = p.status;
+            if (p.completion !== undefined && document.getElementById('proj_completion')) document.getElementById('proj_completion').value = p.completion;
+            document.getElementById('proj_scope').value = p.scope || '';
+
+            const memIds = new Set(p.team_members || []);
+            document.querySelectorAll('#proj_team_members_container input[type="checkbox"]').forEach(cb => {
+              if (memIds.has(parseInt(cb.value))) cb.checked = true;
+            });
+          }
+        } catch (e) {
+          showToast('Failed to load project details for editing.', 'error');
+        }
+      } else {
+        titleEl.textContent = 'Add New Project';
+        document.getElementById('btnSaveProject').textContent = 'Save project';
+      }
+
+      modal.classList.add('show');
+    }
+
+    function closeAddProjectModal() {
+      const modal = document.getElementById('addProjectModal');
+      if (modal) modal.classList.remove('show');
+    }
+
+    async function submitProjectForm() {
+      const editId = document.getElementById('proj_edit_id').value;
+      const clientVal = document.getElementById('proj_client').value;
+      const nameVal = document.getElementById('proj_name').value.trim();
+      const catVal = document.getElementById('proj_category').value;
+      const valVal = document.getElementById('proj_value').value;
+      const startVal = document.getElementById('proj_start_date').value;
+      const deadVal = document.getElementById('proj_deadline').value;
+      const pmVal = document.getElementById('proj_manager').value;
+      const scopeVal = document.getElementById('proj_scope').value.trim();
+      const statusVal = document.getElementById('proj_status') ? document.getElementById('proj_status').value : 'In Progress';
+      const completionVal = document.getElementById('proj_completion') ? parseInt(document.getElementById('proj_completion').value) : 0;
+
+      const checkedMembers = [];
+      document.querySelectorAll('#proj_team_members_container input[type="checkbox"]:checked').forEach(cb => {
+        checkedMembers.push(parseInt(cb.value));
+      });
+
+      if (!clientVal) {
+        showToast('Please select a client.', 'error');
+        return;
+      }
+      if (!nameVal) {
+        showToast('Please enter project name.', 'error');
+        return;
+      }
+      if (!deadVal) {
+        showToast('Please specify deadline.', 'error');
+        return;
+      }
+
+      const payload = {
+        client: parseInt(clientVal),
+        project_name: nameVal,
+        category: catVal,
+        value: valVal ? parseFloat(valVal) : 0,
+        start_date: startVal || null,
+        deadline: deadVal,
+        project_manager: pmVal ? parseInt(pmVal) : null,
+        team_members: checkedMembers,
+        scope: scopeVal,
+        status: statusVal,
+        completion: isNaN(completionVal) ? 0 : Math.max(0, Math.min(100, completionVal))
+      };
+
+      const saveBtn = document.getElementById('btnSaveProject');
+      const originalText = saveBtn.textContent;
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
+      try {
+        const url = editId ? `/api/projects/${editId}/update/` : '/api/projects/add/';
+        const method = editId ? 'PATCH' : 'POST';
+
+        const res = await fetch(url, {
+          method: method,
+          headers: getApiHeaders(),
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          showToast(data.message || 'Project saved successfully!', 'success');
+          closeAddProjectModal();
+          switchInsideTab('projects');
+          loadProjects();
+        } else {
+          let errText = data.message || 'Failed to save project.';
+          if (data.errors) {
+            const firstKey = Object.keys(data.errors)[0];
+            errText = `${firstKey}: ${data.errors[firstKey]}`;
+          }
+          showToast(errText, 'error');
+        }
+      } catch (err) {
+        showToast('Network error while saving project.', 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+      }
+    }
+
+    async function loadProjects() {
+      const tbody = document.getElementById('projectsTableBody');
+      const countLabel = document.getElementById('projectsCountLabel');
+      if (!tbody) return;
+
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #94a3b8; padding: 28px;">Loading projects...</td></tr>';
+
+      try {
+        const res = await fetch('/api/projects/', { headers: getApiHeaders() });
+        const json = await res.json();
+        if (json.success && json.data) {
+          projectsCache = json.data;
+          renderProjectsTable(projectsCache);
+        } else {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #ef4444; padding: 28px;">Failed to load projects.</td></tr>';
+        }
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #ef4444; padding: 28px;">Network error loading projects.</td></tr>';
+      }
+    }
+
+    function renderProjectsTable(allProjects) {
+      const tbody = document.getElementById('projectsTableBody');
+      const countLabel = document.getElementById('projectsCountLabel');
+      if (!tbody) return;
+
+      updateProjectStats(allProjects);
+
+      const search = (document.getElementById('projectsSearchInput') ? document.getElementById('projectsSearchInput').value.trim().toLowerCase() : '');
+      let filtered = allProjects;
+      if (search) {
+        filtered = allProjects.filter(p => {
+          const name = (p.project_name || '').toLowerCase();
+          const client = (p.display_client_name || p.client_name || '').toLowerCase();
+          const po = getPoNumber(p).toLowerCase();
+          const mgr = (p.project_manager_name || '').toLowerCase();
+          const cat = (p.category || '').toLowerCase();
+          const st = (p.status || '').toLowerCase();
+          return name.includes(search) || client.includes(search) || po.includes(search) || mgr.includes(search) || cat.includes(search) || st.includes(search);
+        });
+      }
+
+      if (!filtered || filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #94a3b8; padding: 36px; font-size: 13px;">No projects found. Click "Add New Project +" to create one.</td></tr>';
+        if (countLabel) countLabel.textContent = 'Showing 0 of 0 entries';
+        return;
+      }
+
+      const total = filtered.length;
+      const startIdx = (projectsCurrentPage - 1) * projectsPageSize;
+      const endIdx = Math.min(startIdx + projectsPageSize, total);
+      const pageItems = filtered.slice(startIdx, endIdx);
+
+      if (countLabel) {
+        countLabel.textContent = `Showing ${startIdx + 1} to ${endIdx} of ${total} entries`;
+      }
+
+      tbody.innerHTML = pageItems.map((p, idx) => {
+        const rowNum = startIdx + idx + 1;
+        const poNum = getPoNumber(p);
+        const clientSub = p.display_client_name || p.client_name || p.project_manager_name || 'Ashish';
+        const overdue = isProjectOverdue(p.deadline, p.status);
+        const formattedDate = formatProjectDate(p.deadline);
+        const pmName = p.project_manager_name || '—';
+
+        // Stage badge
+        const rawStatus = p.status || 'In Progress';
+        let stageClass = 'in-progress';
+        let stageLabel = rawStatus;
+        const stLower = rawStatus.toLowerCase();
+        if (stLower.includes('handover')) {
+          stageClass = 'handover';
+          stageLabel = 'Handover';
+        } else if (stLower.includes('complete')) {
+          stageClass = 'completed';
+          stageLabel = 'Completed';
+        } else if (stLower.includes('not started')) {
+          stageClass = 'not-started';
+          stageLabel = 'Not Started';
+        } else if (stLower.includes('cancel')) {
+          stageClass = 'cancelled';
+          stageLabel = 'Canceled';
+        } else if (stLower.includes('hold')) {
+          stageClass = 'on-hold';
+          stageLabel = 'On Hold';
+        } else if (stLower.includes('progress')) {
+          stageClass = 'in-progress';
+          stageLabel = 'In Progress';
+        }
+
+        // Progress & bar color
+        let progressPct = parseInt(p.completion);
+        if (isNaN(progressPct)) {
+          progressPct = (stageClass === 'completed' ? 100 : 0);
+        }
+        progressPct = Math.max(0, Math.min(100, progressPct));
+        const barColor = progressPct >= 70 ? '#f59e0b' : (progressPct > 0 ? '#f59e0b' : '#cbd5e1');
+
+        return `
+          <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s ease;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+            <td style="padding: 12px 10px; font-size: 13px; color: #64748b;">${rowNum}</td>
+            <td style="padding: 12px 14px; font-size: 13px; color: #334155;">${poNum}</td>
+            <td style="padding: 12px 14px;">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <a href="javascript:void(0)" onclick="viewProjectDetails(${p.id})" style="color: #2563eb; font-weight: 600; font-size: 13.5px; text-decoration: none;">${p.project_name}</a>
+                ${overdue ? '<span style="background: #fef9c3; color: #854d0e; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 4px; border: 1px solid #fde047;">Period Expired</span>' : ''}
+              </div>
+              <div style="color: #64748b; font-size: 11.5px; margin-top: 3px;">${clientSub}</div>
+            </td>
+            <td style="padding: 12px 14px; font-size: 13px; white-space: nowrap;">
+              <span style="color: ${overdue ? '#dc2626' : '#334155'}; font-weight: ${overdue ? '600' : '400'};">${formattedDate}</span>
+            </td>
+            <td style="padding: 12px 14px;">
+              <div style="width: 120px;">
+                <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #475569; margin-bottom: 4px;">
+                  <span>Progress</span>
+                  <span style="font-weight: 600;">${progressPct}%</span>
+                </div>
+                <div style="background: #e2e8f0; height: 6px; border-radius: 3px; overflow: hidden; width: 100%;">
+                  <div style="background: ${barColor}; width: ${progressPct}%; height: 100%; border-radius: 3px;"></div>
+                </div>
+              </div>
+            </td>
+            <td style="padding: 12px 14px; font-size: 13px; color: #334155;">${pmName}</td>
+            <td style="padding: 12px 14px; white-space: nowrap;">
+              <span class="proj-stage-badge ${stageClass}">${stageLabel}</span>
+            </td>
+            <td style="padding: 12px 14px; text-align: right; position: relative;">
+              <div class="proj-action-wrap">
+                <button type="button" class="proj-action-btn" onclick="toggleActionMenu(event, ${p.id})">
+                  Action <span style="font-size: 9px; margin-left: 2px;">▼</span>
+                </button>
+                <div class="proj-action-menu" id="actionMenu-${p.id}">
+                  <a href="javascript:void(0)" onclick="viewProjectDetails(${p.id})">
+                    <span>👁</span> View details
+                  </a>
+                  <a href="javascript:void(0)" onclick="openUpdateProgressModal(${p.id})">
+                    <span>📈</span> Update progress
+                  </a>
+                  <a href="javascript:void(0)" onclick="openAddProjectModal(${p.id})">
+                    <span>👥</span> Edit / allocate team
+                  </a>
+                  <a href="javascript:void(0)" onclick="showToast('Refund requested for project #' + ${p.id}, 'info')">
+                    <span>↰</span> Raise refund
+                  </a>
+                  <a href="javascript:void(0)" onclick="deleteProject(${p.id}, '${p.project_name.replace(/'/g, "\\'")}')" style="color: #dc2626; border-top: 1px solid #f1f5f9;">
+                    <span>🗑</span> Delete project
+                  </a>
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function toggleActionMenu(event, id) {
+      event.stopPropagation();
+      const menu = document.getElementById(`actionMenu-${id}`);
+      const btn = event.currentTarget;
+      const isShown = menu && menu.classList.contains('show');
+      document.querySelectorAll('.proj-action-menu.show').forEach(m => m.classList.remove('show'));
+      if (menu && !isShown) {
+        const rect = btn.getBoundingClientRect();
+        menu.style.position = 'fixed';
+        menu.classList.add('show');
+        const menuWidth = menu.offsetWidth || 175;
+        const menuHeight = menu.offsetHeight || 185;
+        let top = rect.bottom + 4;
+        if (rect.bottom + menuHeight > window.innerHeight && (rect.top - menuHeight - 4 > 0)) {
+          top = rect.top - menuHeight - 4;
+        }
+        let left = Math.max(10, rect.right - menuWidth);
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.proj-action-wrap') && !e.target.closest('.proj-action-menu')) {
+        document.querySelectorAll('.proj-action-menu.show').forEach(m => m.classList.remove('show'));
+      }
+    });
+
+    window.addEventListener('scroll', () => {
+      document.querySelectorAll('.proj-action-menu.show').forEach(m => m.classList.remove('show'));
+    }, true);
+
+    window.addEventListener('resize', () => {
+      document.querySelectorAll('.proj-action-menu.show').forEach(m => m.classList.remove('show'));
+    });
+
+    function debounceProjectSearch() {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        renderProjectsTable(projectsCache);
+      }, 250);
+    }
+
+    function openUpdateProgressModal(id) {
+      document.querySelectorAll('.proj-action-menu.show').forEach(m => m.classList.remove('show'));
+      const p = projectsCache.find(x => x.id === id);
+      if (!p) return;
+
+      document.getElementById('prog_proj_id').value = p.id;
+      document.getElementById('prog_proj_name').textContent = `${getPoNumber(p)} — ${p.project_name}`;
+      const pct = p.completion || (p.status === 'Completed' ? 100 : 0);
+      document.getElementById('prog_slider').value = pct;
+      document.getElementById('prog_pct_val').textContent = pct + '%';
+      if (p.status) document.getElementById('prog_status').value = p.status;
+
+      document.getElementById('updateProgressModal').classList.add('show');
+    }
+
+    function closeUpdateProgressModal() {
+      const modal = document.getElementById('updateProgressModal');
+      if (modal) modal.classList.remove('show');
+    }
+
+    async function submitProgressForm() {
+      const id = document.getElementById('prog_proj_id').value;
+      const pct = parseInt(document.getElementById('prog_slider').value) || 0;
+      const statusVal = document.getElementById('prog_status').value;
+      const saveBtn = document.getElementById('btnSaveProgress');
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
+      try {
+        const res = await fetch(`/api/projects/${id}/update/`, {
+          method: 'PATCH',
+          headers: getApiHeaders(),
+          body: JSON.stringify({ completion: pct, status: statusVal })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('Progress updated successfully!', 'success');
+          closeUpdateProgressModal();
+          loadProjects();
+        } else {
+          showToast(data.message || 'Failed to update progress.', 'error');
+        }
+      } catch (e) {
+        showToast('Network error updating progress.', 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Progress';
+      }
+    }
+
+    function viewProjectDetails(id) {
+      document.querySelectorAll('.proj-action-menu.show').forEach(m => m.classList.remove('show'));
+      const p = projectsCache.find(x => x.id === id);
+      if (!p) return;
+
+      const body = document.getElementById('projectDetailsBody');
+      const poNum = getPoNumber(p);
+      const valStr = p.value_formatted || `₹${p.value || 0}`;
+      const formattedDead = formatProjectDate(p.deadline);
+      const formattedStart = formatProjectDate(p.start_date);
+      const teamList = (p.team_member_names && p.team_member_names.length > 0) ? p.team_member_names.join(', ') : 'None allocated';
+
+      body.innerHTML = `
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; margin-bottom: 14px;">
+          <div style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700;">${poNum}</div>
+          <h4 style="font-size: 16px; font-weight: 700; color: #1e3a8a; margin: 4px 0 0 0;">${p.project_name}</h4>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div><strong>Client:</strong> ${p.display_client_name || p.client_name || '—'}</div>
+          <div><strong>Category:</strong> ${p.category || '—'}</div>
+          <div><strong>Project Value:</strong> <span style="color: #047857; font-weight: 700;">${valStr}</span></div>
+          <div><strong>Stage:</strong> <span class="proj-stage-badge in-progress">${p.status || 'In Progress'}</span></div>
+          <div><strong>Start Date:</strong> ${formattedStart}</div>
+          <div><strong>Deadline:</strong> ${formattedDead}</div>
+          <div><strong>Manager:</strong> ${p.project_manager_name || '—'}</div>
+          <div><strong>Completion:</strong> ${p.completion || 0}%</div>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <strong>Team Members:</strong>
+          <div style="color: #475569; margin-top: 3px;">${teamList}</div>
+        </div>
+        ${p.scope ? `<div><strong>Scope / Description:</strong><div style="color: #475569; margin-top: 3px; white-space: pre-wrap; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">${p.scope}</div></div>` : ''}
+      `;
+
+      document.getElementById('viewProjectDetailsModal').classList.add('show');
+    }
+
+    function closeViewProjectDetailsModal() {
+      const modal = document.getElementById('viewProjectDetailsModal');
+      if (modal) modal.classList.remove('show');
+    }
+
+    async function deleteProject(id, name) {
+      document.querySelectorAll('.proj-action-menu.show').forEach(m => m.classList.remove('show'));
+      if (!confirm(`Are you sure you want to delete project "${name}"?`)) return;
+      try {
+        const res = await fetch(`/api/projects/${id}/delete/`, {
+          method: 'DELETE',
+          headers: getApiHeaders()
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(data.message || 'Project deleted successfully.', 'success');
+          loadProjects();
+        } else {
+          showToast(data.message || 'Failed to delete project.', 'error');
+        }
+      } catch (e) {
+        showToast('Network error while deleting project.', 'error');
+      }
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('insideToastContainer');
+      if (!container) return;
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.textContent = msg;
+      container.appendChild(t);
+      setTimeout(() => { if (t.parentNode) t.parentNode.removeChild(t); }, 3800);
+    }
+
+    function toggleInsideDropdown() {
+      const dd = document.getElementById('insideUserDropdown');
+      if (dd) dd.classList.toggle('show');
+    }
+
+    window.addEventListener('click', (e) => {
+      const dd = document.getElementById('insideUserDropdown');
+      const btn = document.getElementById('insideAvatarBtn');
+      if (dd && btn && !dd.contains(e.target) && !btn.contains(e.target)) {
+        dd.classList.remove('show');
+      }
+    });
+
+    function toggleInsideSidebarCollapse() {
+      const sb = document.getElementById('insideSidebar');
+      if (sb) {
+        if (window.innerWidth <= 768) {
+          sb.classList.toggle('mobile-open');
+        } else {
+          sb.classList.toggle('collapsed');
+        }
+      }
+    }
+
+    function toggleInsideMenu(groupId) {
+      const grp = document.getElementById(groupId);
+      if (grp) grp.classList.toggle('open');
+    }
+
+    function switchInsideTab(tabKey) {
+      // Manage Active Menu Item Styling
+      document.querySelectorAll('#insideSidebar .menu-item, #insideSidebar .submenu-item').forEach(el => el.classList.remove('active'));
+
+      const dashPanel = document.getElementById('inside-tab-dashboard');
+      const genericPanel = document.getElementById('inside-tab-generic');
+      const projectsPanel = document.getElementById('inside-tab-projects');
+
+      if (tabKey === 'dashboard') {
+        const dItem = document.getElementById('in-nav-dashboard');
+        if (dItem) dItem.classList.add('active');
+        if (dashPanel) dashPanel.classList.add('active');
+        if (genericPanel) genericPanel.classList.remove('active');
+        if (projectsPanel) projectsPanel.classList.remove('active');
+      } else if (tabKey === 'projects') {
+        const pItem = document.getElementById('in-nav-projects');
+        if (pItem) pItem.classList.add('active');
+        if (dashPanel) dashPanel.classList.remove('active');
+        if (genericPanel) genericPanel.classList.remove('active');
+        if (projectsPanel) projectsPanel.classList.add('active');
+        loadProjects();
+      } else if (tabKey === 'add_new_project') {
+        // Open modal and display projects panel in background
+        if (dashPanel) dashPanel.classList.remove('active');
+        if (genericPanel) genericPanel.classList.remove('active');
+        if (projectsPanel) projectsPanel.classList.add('active');
+        const pItem = document.getElementById('in-nav-projects');
+        if (pItem) pItem.classList.add('active');
+        loadProjects();
+        openAddProjectModal();
+      } else {
+        if (dashPanel) dashPanel.classList.remove('active');
+        if (projectsPanel) projectsPanel.classList.remove('active');
+        if (genericPanel) genericPanel.classList.add('active');
+
+        const titleMap = {
+          'add_prospect': 'Add your Own Prospect/ Lead',
+          'fresh_invoice': 'Generate Fresh-Lead Invoice',
+          'upsale_invoice': 'Generate Upsale Invoice',
+          'renewal_invoice': 'Generate Renewal Invoice',
+          'manage_payment_requests': 'Manage Payment Requests',
+          'marketplace_link': 'Generate Marketplace Invoice Link',
+          'all_leads': 'All Leads',
+          'pending_leads': 'Pending Leads',
+          'callbacks': 'Callbacks',
+          'import_leads': 'Import Leads (CSV)',
+          'assign_leads': 'Assign Leads',
+          'all_clients': 'All Clients',
+          'add_client': 'Add Client',
+          'payments_received': 'Payments Received',
+          'record_payment': 'Record Payment',
+          'all_invoices': 'All Invoices',
+          'refund_requests': 'Refund Requests',
+          'project_handovers': 'Project Handovers',
+          'sales_report': 'Sales Report',
+          'project_report': 'Project Report',
+          'users_logins': 'Users & Logins',
+          'settings': 'Settings'
+        };
+
+        const title = titleMap[tabKey] || tabKey.replace(/_/g, ' ').toUpperCase();
+        const elT = document.getElementById('genericViewTitle');
+        const elH = document.getElementById('genericBoxHeading');
+        if (elT) elT.textContent = title;
+        if (elH) elH.textContent = `${title} Module`;
+      }
+    }
+
+    function updateInsideClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      const mins = String(now.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'pm' : 'am';
+      hours = hours % 12 || 12;
+      const str = `${hours}:${mins} ${ampm}`;
+      const c1 = document.getElementById('insideLiveClock');
+      const c2 = document.getElementById('insideLiveBannerTime');
+      if (c1) c1.textContent = str;
+      if (c2) c2.textContent = `${hours}:${mins} ${ampm.toUpperCase()}`;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateInsideClock();
+      setInterval(updateInsideClock, 10000);
+      const activeTab = "{{ active_tab|default:'dashboard' }}";
+      if (activeTab === 'projects') {
+        switchInsideTab('projects');
+      } else {
+        // Preload projects in background so stats and cache are ready
+        loadProjects();
+      }
+    });
+  </script>
+</body>
+</html>
+

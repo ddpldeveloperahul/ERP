@@ -75,6 +75,20 @@ class User(AbstractUser):
         choices=ROLE_CHOICES
     )
 
+    # Optional Designation & Department
+    designation = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        verbose_name="Designation"
+    )
+    department = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        verbose_name="Department"
+    )
+
     # Email verification status
     is_email_verified = models.BooleanField(
         default=False
@@ -87,6 +101,13 @@ class User(AbstractUser):
     USERNAME_FIELD = "email"
 
     REQUIRED_FIELDS = []
+
+    @property
+    def display_title(self):
+        name = self.get_full_name().strip() or self.first_name or self.email.split("@")[0].capitalize()
+        desig = self.designation or self.get_role_display() or "Member"
+        dept = f" {self.department}" if self.department else ""
+        return f"{name} ({desig}){dept}".strip()
 
     def __str__(self):
         return f"{self.email} ({self.get_role_display()})"
@@ -629,3 +650,206 @@ class EmailCampaign(models.Model):
 
 # Convenience alias
 Campaign = EmailCampaign
+
+
+# =========================================================
+# 7. Client Model (Inside Sales & CRM)
+# =========================================================
+class Client(models.Model):
+    CLIENT_IS_CHOICES = [
+        ("Domestic", "Domestic"),
+        ("International", "International"),
+    ]
+
+    client_name = models.CharField(
+        max_length=255,
+        verbose_name="Client Full Name"
+    )
+    company_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        verbose_name="Company Name"
+    )
+    email = models.EmailField(
+        blank=True,
+        default="",
+        verbose_name="Client Email Address"
+    )
+    phone = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+        verbose_name="Contact Number"
+    )
+    client_is = models.CharField(
+        max_length=20,
+        choices=CLIENT_IS_CHOICES,
+        default="Domestic",
+        verbose_name="Client Is"
+    )
+    address = models.TextField(
+        blank=True,
+        default="",
+        verbose_name="Client Address"
+    )
+    website = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        verbose_name="Website"
+    )
+    country_name = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        verbose_name="Country Name"
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="clients",
+        verbose_name="Created By"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Client"
+        verbose_name_plural = "Clients"
+
+    @property
+    def display_label(self):
+        comp = f" ({self.company_name})" if self.company_name else ""
+        return f"{self.client_name}{comp}".strip()
+
+    def __str__(self):
+        return self.display_label
+
+
+# =========================================================
+# 8. Project Model (Projects Addition & Management)
+# =========================================================
+class Project(models.Model):
+    STATUS_CHOICES = [
+        ("In Progress", "In Progress"),
+        ("Completed", "Completed"),
+        ("Handover", "Handover"),
+        ("On Hold", "On Hold"),
+        ("Pending", "Pending"),
+        ("Not Started", "Not Started"),
+        ("Cancelled", "Cancelled"),
+    ]
+
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="projects",
+        verbose_name="Client"
+    )
+    client_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        verbose_name="Client Name (Direct / Fallback)"
+    )
+    project_name = models.CharField(
+        max_length=255,
+        verbose_name="Project Name"
+    )
+    category = models.CharField(
+        max_length=100,
+        choices=Lead.PROJECT_CATEGORY_CHOICES,
+        blank=True,
+        default="",
+        verbose_name="Category"
+    )
+    value = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=0.00,
+        verbose_name="Value (₹, excl. tax)"
+    )
+    start_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Start Date"
+    )
+    deadline = models.DateField(
+        verbose_name="Deadline"
+    )
+    project_manager = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="managed_projects",
+        verbose_name="Project Manager"
+    )
+    team_members = models.ManyToManyField(
+        User,
+        blank=True,
+        related_name="assigned_projects",
+        verbose_name="Team Members"
+    )
+    scope = models.TextField(
+        blank=True,
+        default="",
+        verbose_name="Scope / Description"
+    )
+    completion = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Completion %"
+    )
+    status = models.CharField(
+        max_length=50,
+        choices=STATUS_CHOICES,
+        default="In Progress",
+        verbose_name="Project Status"
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_projects",
+        verbose_name="Created By"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Project"
+        verbose_name_plural = "Projects"
+
+    @property
+    def project_id(self):
+        return f"PROJ-{self.id:04d}" if self.id else ""
+
+    @property
+    def po_number(self):
+        return f"PO/DDT/1/{5800 + self.id:010d}" if self.id else ""
+
+    @property
+    def display_client_name(self):
+        if self.client:
+            return self.client.client_name
+        return self.client_name or "-"
+
+    def __str__(self):
+        return f"{self.project_id} - {self.project_name} ({self.status})"
+

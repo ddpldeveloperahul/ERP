@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 
-from erp.models import EmailOTP, Lead, ScheduleCallback, EmailCampaign
+from erp.models import EmailOTP, Lead, ScheduleCallback, EmailCampaign, Client, Project
 from erp.utils import verify_password_reset_token
 
 User = get_user_model()
@@ -550,3 +550,311 @@ class EmailCampaignSerializer(serializers.ModelSerializer):
             })
 
         return data
+
+
+# =========================================================
+# Client Serializer
+# =========================================================
+class ClientSerializer(serializers.ModelSerializer):
+    created_by_name = serializers.SerializerMethodField(read_only=True)
+    display_label = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Client
+        fields = [
+            "id",
+            "client_name",
+            "company_name",
+            "email",
+            "phone",
+            "client_is",
+            "address",
+            "website",
+            "country_name",
+            "created_by",
+            "created_by_name",
+            "display_label",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "created_by",
+            "created_by_name",
+            "display_label",
+            "created_at",
+            "updated_at",
+        ]
+
+    def get_created_by_name(self, obj):
+        if obj.created_by:
+            full = f"{obj.created_by.first_name} {obj.created_by.last_name}".strip()
+            return full or obj.created_by.email
+        return None
+
+    def get_display_label(self, obj):
+        comp = f" ({obj.company_name})" if obj.company_name else ""
+        return f"{obj.client_name}{comp}".strip()
+
+    def to_internal_value(self, data):
+        mutable_data = data.copy() if hasattr(data, "copy") else dict(data)
+        if "name" in mutable_data and "client_name" not in mutable_data:
+            mutable_data["client_name"] = mutable_data["name"]
+        if "company" in mutable_data and "company_name" not in mutable_data:
+            mutable_data["company_name"] = mutable_data["company"]
+        if "contact" in mutable_data and "phone" not in mutable_data:
+            mutable_data["phone"] = mutable_data["contact"]
+        return super().to_internal_value(mutable_data)
+
+
+# =========================================================
+# User Brief Serializer (Dynamic Team Members & Managers)
+# =========================================================
+class UserBriefSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+    display_label = serializers.SerializerMethodField()
+    role_display = serializers.CharField(source="get_role_display", read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "name",
+            "email",
+            "role",
+            "role_display",
+            "designation",
+            "department",
+            "display_label",
+        ]
+
+    def get_name(self, obj):
+        full = f"{obj.first_name} {obj.last_name}".strip()
+        return full or obj.first_name or obj.email.split("@")[0].capitalize()
+
+    def get_display_label(self, obj):
+        return getattr(obj, "display_title", self.get_name(obj))
+
+
+# =========================================================
+# Project Serializer (CRUD & Dynamic Options)
+# =========================================================
+class ProjectSerializer(serializers.ModelSerializer):
+    project_id = serializers.CharField(read_only=True)
+    po_number = serializers.CharField(read_only=True)
+    display_client_name = serializers.CharField(read_only=True)
+    created_by_name = serializers.SerializerMethodField(read_only=True)
+    project_manager_name = serializers.SerializerMethodField(read_only=True)
+    project_manager_detail = UserBriefSerializer(source="project_manager", read_only=True)
+    team_members_detail = UserBriefSerializer(source="team_members", many=True, read_only=True)
+    team_member_names = serializers.SerializerMethodField(read_only=True)
+    client_detail = ClientSerializer(source="client", read_only=True)
+    value_formatted = serializers.SerializerMethodField(read_only=True)
+
+    # Input handling
+    client = serializers.PrimaryKeyRelatedField(
+        queryset=Client.objects.all(),
+        required=False,
+        allow_null=True
+    )
+    client_id = serializers.IntegerField(
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+    client_name = serializers.CharField(
+        required=False,
+        allow_blank=True
+    )
+    start_date = serializers.DateField(
+        required=False,
+        allow_null=True,
+        input_formats=["%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"]
+    )
+    deadline = serializers.DateField(
+        required=True,
+        input_formats=["%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"]
+    )
+    project_manager = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        required=False,
+        allow_null=True
+    )
+    project_manager_id = serializers.IntegerField(
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+    team_members = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        many=True,
+        required=False
+    )
+
+    class Meta:
+        model = Project
+        fields = [
+            "id",
+            "project_id",
+            "po_number",
+            "project_name",
+            "client",
+            "client_id",
+            "client_name",
+            "display_client_name",
+            "client_detail",
+            "category",
+            "value",
+            "value_formatted",
+            "start_date",
+            "deadline",
+            "project_manager",
+            "project_manager_id",
+            "project_manager_name",
+            "project_manager_detail",
+            "team_members",
+            "team_members_detail",
+            "team_member_names",
+            "scope",
+            "completion",
+            "status",
+            "created_by",
+            "created_by_name",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "project_id",
+            "po_number",
+            "display_client_name",
+            "client_detail",
+            "value_formatted",
+            "project_manager_name",
+            "project_manager_detail",
+            "team_members_detail",
+            "team_member_names",
+            "created_by",
+            "created_by_name",
+            "created_at",
+            "updated_at",
+        ]
+
+    def get_created_by_name(self, obj):
+        if obj.created_by:
+            full = f"{obj.created_by.first_name} {obj.created_by.last_name}".strip()
+            return full or obj.created_by.email
+        return None
+
+    def get_project_manager_name(self, obj):
+        if obj.project_manager:
+            return obj.project_manager.get_full_name() or obj.project_manager.email
+        return None
+
+    def get_team_member_names(self, obj):
+        return [m.display_title for m in obj.team_members.all()]
+
+    def get_value_formatted(self, obj):
+        try:
+            return f"₹{obj.value:,.2f}"
+        except Exception:
+            return f"₹{obj.value}"
+
+    def to_internal_value(self, data):
+        mutable_data = data.copy() if hasattr(data, "copy") else dict(data)
+
+        # Value aliases
+        if "value_excl_tax" in mutable_data and "value" not in mutable_data:
+            mutable_data["value"] = mutable_data["value_excl_tax"]
+        if "project_value" in mutable_data and "value" not in mutable_data:
+            mutable_data["value"] = mutable_data["project_value"]
+
+        # Scope aliases
+        if "description" in mutable_data and "scope" not in mutable_data:
+            mutable_data["scope"] = mutable_data["description"]
+
+        # Project manager alias
+        if "project_manager_id" in mutable_data and "project_manager" not in mutable_data:
+            mutable_data["project_manager"] = mutable_data["project_manager_id"]
+
+        # Client aliases
+        if "client_id" in mutable_data and "client" not in mutable_data:
+            mutable_data["client"] = mutable_data["client_id"]
+
+        # Team members list / comma-separated string
+        if "team_members" in mutable_data:
+            raw_members = mutable_data["team_members"]
+            if isinstance(raw_members, str):
+                mutable_data["team_members"] = [
+                    int(x.strip()) for x in raw_members.split(",") if x.strip().isdigit()
+                ]
+
+        # Handle empty date strings
+        if mutable_data.get("start_date") == "":
+            mutable_data["start_date"] = None
+        if mutable_data.get("deadline") == "":
+            mutable_data["deadline"] = None
+
+        has_client = bool(
+            mutable_data.get("client")
+            or mutable_data.get("client_id")
+            or (isinstance(mutable_data.get("client_name"), str) and mutable_data.get("client_name").strip())
+        )
+
+        try:
+            ret = super().to_internal_value(mutable_data)
+        except serializers.ValidationError as exc:
+            detail = exc.detail
+            if not self.instance and not has_client:
+                if isinstance(detail, dict) and "client" not in detail:
+                    detail["client"] = [serializers.ErrorDetail("Client is required. Please select or enter a client.", code="required")]
+            raise serializers.ValidationError(detail)
+
+        if not self.instance and not has_client and not ret.get("client") and not ret.get("client_name"):
+            raise serializers.ValidationError({
+                "client": "Client is required. Please select or enter a client."
+            })
+
+        return ret
+
+    def validate(self, data):
+        # Validate client presence
+        client = data.get("client")
+        client_name = data.get("client_name")
+
+        # Auto-create or resolve client if string was provided
+        if not client and client_name and client_name.strip():
+            c, _ = Client.objects.get_or_create(
+                client_name=client_name.strip(),
+                defaults={"company_name": client_name.strip()}
+            )
+            data["client"] = c
+            data["client_name"] = c.client_name
+
+        if not data.get("client") and not data.get("client_name") and not self.instance:
+            raise serializers.ValidationError({
+                "client": "Client is required. Please select or enter a client."
+            })
+
+        # Project name is required
+        project_name = data.get("project_name")
+        if not project_name and not self.instance:
+            raise serializers.ValidationError({
+                "project_name": "Project name is required."
+            })
+
+        # Deadline is required
+        deadline = data.get("deadline")
+        if not deadline and not self.instance:
+            raise serializers.ValidationError({
+                "deadline": "Deadline date is required."
+            })
+
+        start_date = data.get("start_date")
+        if start_date and deadline and start_date > deadline:
+            raise serializers.ValidationError({
+                "deadline": "Deadline cannot be earlier than start date."
+            })
+
+        return data
+

@@ -2,6 +2,7 @@ from django.urls import path
 from erp.views import (
     home,
     dashboard_view,
+    inside_sales_dashboard_view,
     leads_manage_web_view,
     leads_add_web_view,
     callbacks_web_view,
@@ -21,6 +22,9 @@ from erp.views import (
     EmailCampaignDetailAPIView,
     EmailCampaignLeadsAPIView,
     LeadGenerationReportAPIView,
+    ProjectListCreateAPIView,
+    ProjectDetailAPIView,
+    projects_web_view,
     LoginAPIView,
     LogoutAPIView,
 )
@@ -38,6 +42,8 @@ urlpatterns = [
     path("login/", LoginAPIView.as_view(), name="erp_login"),
     path("dashboard/", dashboard_view, name="dashboard"),
     path("dashboard/", dashboard_view, name="erp_dashboard"),
+    path("inside-sales/dashboard/", inside_sales_dashboard_view, name="inside_sales_dashboard"),
+    path("inside-sales/", inside_sales_dashboard_view, name="inside_sales_home"),
     path("logout/", LogoutAPIView.as_view(), name="logout"),
     path("logout/", LogoutAPIView.as_view(), name="erp_logout"),
 
@@ -114,6 +120,19 @@ urlpatterns = [
     path("reports/", reports_web_view, name="reports"),
     path("reports/lead-generation/", reports_web_view, name="reports_lead_generation"),
     path("reports/overview/", reports_web_view, name="reports_overview"),
+
+    # REST APIs - Projects Addition & Management (CRUD)
+    path("api/projects/", ProjectListCreateAPIView.as_view(), name="api_projects"),
+    path("api/projects/add/", ProjectListCreateAPIView.as_view(), name="api_add_project"),
+    path("api/projects/create/", ProjectListCreateAPIView.as_view(), name="api_create_project"),
+    path("api/projects/<int:pk>/", ProjectDetailAPIView.as_view(), name="api_project_detail"),
+    path("api/projects/<int:pk>/update/", ProjectDetailAPIView.as_view(), name="api_project_update"),
+    path("api/projects/<int:pk>/delete/", ProjectDetailAPIView.as_view(), name="api_project_delete"),
+
+    # Web / Alias paths - Projects
+    path("projects/", projects_web_view, name="projects"),
+    path("projects/add/", projects_web_view, name="add_project"),
+    path("inside-sales/projects/", projects_web_view, name="inside_sales_projects"),
 
     # REST APIs - Auth Session & JWT
     path("api/login/", LoginAPIView.as_view(), name="api_login"),

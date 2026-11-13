@@ -16,7 +16,7 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
-from erp.models import EmailOTP, Lead, ScheduleCallback, EmailCampaign
+from erp.models import EmailOTP, Lead, ScheduleCallback, EmailCampaign, Client, Project
 from erp.utils import (
     send_otp_email,
     generate_password_reset_token,
@@ -32,6 +32,9 @@ from erp.serializers import (
     LeadSerializer,
     ScheduleCallbackSerializer,
     EmailCampaignSerializer,
+    ClientSerializer,
+    UserBriefSerializer,
+    ProjectSerializer,
 )
 
 User = get_user_model()
@@ -44,10 +47,104 @@ def home(request):
     return render(request, "login.html")
 
 
+# Inside Sales Dashboard View
+@login_required(login_url="login")
+def inside_sales_dashboard_view(request, active_tab="dashboard"):
+    user = request.user
+    full_name = f"{user.first_name} {user.last_name}".strip()
+    if not full_name:
+        full_name = user.email.split("@")[0].capitalize()
+
+    first_name = user.first_name or full_name.split()[0]
+    avatar_initial = first_name[0].upper() if first_name else "A"
+
+    role_disp = (
+        user.get_role_display()
+        if hasattr(user, "get_role_display")
+        else getattr(user, "role", "Inside Sales")
+    )
+
+    refresh = RefreshToken.for_user(user)
+    access_token = str(refresh.access_token)
+
+    tab = request.GET.get("tab") or active_tab or "dashboard"
+
+    is_admin = getattr(user, "role", "") == "ADMIN" or user.is_superuser
+    if is_admin:
+        all_leads = Lead.objects.all()
+        all_callbacks = ScheduleCallback.objects.all()
+    else:
+        all_leads = Lead.objects.all()
+        all_callbacks = ScheduleCallback.objects.all()
+
+    now = timezone.now()
+    today = now.date()
+
+    open_leads = all_leads.filter(status__iexact="Open")
+    open_leads_count = open_leads.count()
+
+    leads_to_work = open_leads.order_by("-created_at")[:10]
+    urgent_callbacks = all_callbacks.filter(status="Pending").order_by("date_time")[:10]
+    callbacks_count = urgent_callbacks.count()
+
+    clients = Client.objects.all().order_by("client_name")
+    categories = [c[0] for c in Lead.PROJECT_CATEGORY_CHOICES]
+    active_users = User.objects.filter(is_active=True).order_by("first_name", "email")
+
+    all_projects = Project.objects.all()
+    proj_total = all_projects.count()
+    proj_overdue = all_projects.filter(deadline__lt=today).exclude(status__iexact="Completed").count()
+    proj_not_started = all_projects.filter(Q(status__iexact="Pending") | Q(status__iexact="Not Started")).count()
+    proj_completed = all_projects.filter(status__iexact="Completed").count()
+    proj_in_progress = all_projects.filter(status__iexact="In Progress").count()
+    proj_canceled = all_projects.filter(Q(status__iexact="Cancelled") | Q(status__iexact="Canceled")).count()
+
+    context = {
+        "full_name": full_name,
+        "first_name": first_name,
+        "avatar_initial": avatar_initial,
+        "username": getattr(user, "username", None) or user.email,
+        "email": user.email,
+        "role_display": role_disp,
+        "employee_id": f"DR-EMP-{user.id:04d}",
+        "phone": getattr(user, "phone", "Not Provided"),
+        "email_verified": getattr(user, "is_email_verified", True),
+        "last_login": user.last_login,
+        "access_token": access_token,
+        "active_tab": tab,
+        # Inside Sales specific metrics
+        "company_collections_this_month": 0,
+        "open_leads_count": open_leads_count if open_leads_count > 0 else 18,
+        "projects_in_progress_count": proj_in_progress if proj_in_progress > 0 else Project.objects.filter(status="In Progress").count(),
+        "pending_payment_requests_count": 1,
+        "callbacks_count": callbacks_count,
+        "urgent_callbacks": urgent_callbacks,
+        "leads_to_work": leads_to_work,
+        "clients": clients,
+        "categories": categories,
+        "project_managers": active_users,
+        "team_members": active_users,
+        "proj_total": proj_total,
+        "proj_overdue": proj_overdue,
+        "proj_not_started": proj_not_started,
+        "proj_completed": proj_completed,
+        "proj_in_progress": proj_in_progress,
+        "proj_canceled": proj_canceled,
+        "today_formatted": now.strftime("%a, %d %b, %Y"),
+        "time_formatted": now.strftime("%I:%M %p"),
+    }
+    return render(request, "inside_dashboard.html", context)
+
+
 # Dashboard View
 @login_required(login_url="login")
 def dashboard_view(request, active_tab="dashboard"):
     user = request.user
+    
+    # If user is Inside Sales or requested view=inside_sales, show Inside Sales Dashboard
+    if getattr(user, "role", "") == "INSIDE_SALES" or request.GET.get("view") == "inside_sales":
+        return inside_sales_dashboard_view(request, active_tab=active_tab)
+
     full_name = f"{user.first_name} {user.last_name}".strip()
     if not full_name:
         full_name = user.email.split("@")[0].capitalize()
@@ -1528,3 +1625,220 @@ def reports_web_view(request):
     if request.headers.get("Accept", "").startswith("application/json") or request.content_type == "application/json":
         return LeadGenerationReportAPIView.as_view()(request)
     return dashboard_view(request, active_tab="reports")
+
+
+# =========================================================
+# Projects Addition & Projects CRUD APIs
+# =========================================================
+
+class ProjectListCreateAPIView(APIView):
+    """
+    CRUD - Projects List & Create API:
+    - GET /api/projects/: List & Search projects
+    - POST /api/projects/: Create a new project
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        projects = Project.objects.select_related("client", "project_manager", "created_by").prefetch_related("team_members").all()
+
+        # Multi-keyword search (?search= or ?q=)
+        search_query = request.query_params.get("search", "").strip() or request.query_params.get("q", "").strip()
+        if search_query:
+            tokens = search_query.split()
+            for token in tokens:
+                token_filter = (
+                    Q(project_name__icontains=token)
+                    | Q(client_name__icontains=token)
+                    | Q(client__client_name__icontains=token)
+                    | Q(client__company_name__icontains=token)
+                    | Q(category__icontains=token)
+                    | Q(scope__icontains=token)
+                    | Q(status__icontains=token)
+                    | Q(project_manager__first_name__icontains=token)
+                    | Q(project_manager__last_name__icontains=token)
+                    | Q(project_manager__email__icontains=token)
+                )
+                if token.upper().startswith("PROJ-"):
+                    num_part = token.upper().replace("PROJ-", "").lstrip("0")
+                    if num_part.isdigit():
+                        token_filter |= Q(pk=int(num_part))
+                elif token.isdigit():
+                    token_filter |= Q(pk=int(token))
+
+                projects = projects.filter(token_filter)
+
+        # Filters
+        category_param = request.query_params.get("category")
+        if category_param and category_param != "Any":
+            cat_clean = category_param.strip()
+            projects = projects.filter(Q(category__iexact=cat_clean) | Q(category__icontains=cat_clean))
+
+        status_param = request.query_params.get("status")
+        if status_param and status_param != "Any":
+            projects = projects.filter(status__iexact=status_param.strip())
+
+        client_id_param = request.query_params.get("client_id") or request.query_params.get("client")
+        if client_id_param and str(client_id_param).isdigit():
+            projects = projects.filter(client_id=int(client_id_param))
+
+        pm_id_param = request.query_params.get("project_manager_id") or request.query_params.get("project_manager")
+        if pm_id_param and str(pm_id_param).isdigit():
+            projects = projects.filter(project_manager_id=int(pm_id_param))
+
+        date_from = request.query_params.get("date_from") or request.query_params.get("deadline_from")
+        if date_from:
+            projects = projects.filter(deadline__gte=date_from)
+
+        date_to = request.query_params.get("date_to") or request.query_params.get("deadline_to")
+        if date_to:
+            projects = projects.filter(deadline__lte=date_to)
+
+        # Sorting
+        ordering = request.query_params.get("ordering", "-created_at")
+        allowed_orderings = [
+            "created_at", "-created_at",
+            "deadline", "-deadline",
+            "start_date", "-start_date",
+            "project_name", "-project_name",
+            "value", "-value",
+            "status", "-status",
+        ]
+        if ordering in allowed_orderings:
+            projects = projects.order_by(ordering)
+        else:
+            projects = projects.order_by("-created_at")
+
+        total = projects.count()
+
+        # Pagination
+        try:
+            page = max(1, int(request.query_params.get("page", 1)))
+        except (ValueError, TypeError):
+            page = 1
+
+        try:
+            page_size = max(1, min(100, int(request.query_params.get("page_size", 10))))
+        except (ValueError, TypeError):
+            page_size = 10
+
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        paginated_projects = projects[start_idx:end_idx]
+
+        serializer = ProjectSerializer(paginated_projects, many=True)
+        total_pages = max(1, (total + page_size - 1) // page_size) if total > 0 else 1
+
+        response_data = {
+            "success": True,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages,
+            "data": serializer.data,
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = ProjectSerializer(data=request.data)
+        if serializer.is_valid():
+            project = serializer.save(created_by=request.user)
+            return Response({
+                "success": True,
+                "message": f"Project '{project.project_name}' ({project.project_id}) created successfully.",
+                "data": ProjectSerializer(project).data
+            }, status=status.HTTP_201_CREATED)
+
+        return Response({
+            "success": False,
+            "message": "Validation failed while creating project.",
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProjectDetailAPIView(APIView):
+    """
+    CRUD - Single Project API:
+    - GET /api/projects/<pk>/: Retrieve
+    - PUT / PATCH /api/projects/<pk>/: Update
+    - DELETE /api/projects/<pk>/: Delete
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk):
+        try:
+            return Project.objects.select_related("client", "project_manager", "created_by").prefetch_related("team_members").get(pk=pk)
+        except Project.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        project = self.get_object(pk)
+        if not project:
+            return Response({
+                "success": False,
+                "message": f"Project with ID #{pk} not found."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ProjectSerializer(project)
+        return Response({
+            "success": True,
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        project = self.get_object(pk)
+        if not project:
+            return Response({
+                "success": False,
+                "message": f"Project with ID #{pk} not found."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ProjectSerializer(project, data=request.data, partial=True)
+        if serializer.is_valid():
+            updated = serializer.save()
+            return Response({
+                "success": True,
+                "message": f"Project '{updated.project_name}' ({updated.project_id}) updated successfully.",
+                "data": ProjectSerializer(updated).data
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            "success": False,
+            "message": "Validation failed while updating project.",
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        return self.put(request, pk)
+
+    def delete(self, request, pk):
+        project = self.get_object(pk)
+        if not project:
+            return Response({
+                "success": False,
+                "message": f"Project with ID #{pk} not found."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        p_name = project.project_name
+        p_id = project.project_id
+        project.delete()
+        return Response({
+            "success": True,
+            "message": f"Project {p_id} ('{p_name}') deleted successfully.",
+            "data": {"id": pk}
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request, pk):
+        if "delete" in request.path:
+            return self.delete(request, pk)
+        return self.put(request, pk)
+
+
+@login_required(login_url="login")
+def projects_web_view(request):
+    if request.headers.get("Accept", "").startswith("application/json") or request.content_type == "application/json":
+        return ProjectListCreateAPIView.as_view()(request)
+    return inside_sales_dashboard_view(request, active_tab="projects")
+

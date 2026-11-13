@@ -811,3 +811,204 @@ class LeadGenerationReportTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertContains(res, "Lead Generation Report")
 
+
+class InsideSalesDashboardTests(TestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.inside_sales_user = User.objects.create_user(
+            email="insidesales_test@drdesigntech.com",
+            password="StrongPassword@123",
+            first_name="Rohan",
+            last_name="Sharma",
+            role="INSIDE_SALES",
+        )
+        self.lead_gen_user = User.objects.create_user(
+            email="leadgen_test@drdesigntech.com",
+            password="StrongPassword@123",
+            first_name="Ashish",
+            last_name="Rawat",
+            role="LEAD_GEN",
+        )
+
+    def test_inside_sales_user_redirected_to_inside_dashboard(self):
+        self.client.force_login(self.inside_sales_user)
+        res = self.client.get("/dashboard/")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, "Inside Sales Portal")
+        self.assertContains(res, "Company collections this month")
+        self.assertContains(res, "My Prospect/ Invoice")
+
+    def test_direct_inside_sales_dashboard_url(self):
+        self.client.force_login(self.inside_sales_user)
+        res = self.client.get("/inside-sales/dashboard/")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, "Inside Sales Portal")
+
+    def test_lead_gen_user_keeps_original_dashboard(self):
+        self.client.force_login(self.lead_gen_user)
+        res = self.client.get("/dashboard/")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, "CRM Portal")
+        self.assertContains(res, "Team leads today")
+
+
+class ProjectAndClientAPITests(TestCase):
+
+    def setUp(self):
+        from erp.models import Client, Project, Lead
+        self.client = APIClient()
+
+        self.user = User.objects.create_user(
+            email="manager@drdesigntech.com",
+            password="StrongPassword@123",
+            first_name="Ashish",
+            last_name="Rawat",
+            role="ADMIN",
+            designation="Project Manager",
+            department="Development"
+        )
+        self.team_user = User.objects.create_user(
+            email="developer@drdesigntech.com",
+            password="StrongPassword@123",
+            first_name="Ashish",
+            last_name="Kumar",
+            role="TECH",
+            designation="Full Stack Developer",
+            department="Development"
+        )
+        self.client_obj = Client.objects.create(
+            client_name="Test Enterprise Client",
+            company_name="Acme Global",
+            email="contact@acmeglobal.com",
+            phone="+91 9876543210",
+            client_is="International",
+            created_by=self.user
+        )
+
+        self.projects_url = "/api/projects/"
+
+    def test_options_and_clients_endpoints_removed(self):
+        self.client.force_authenticate(user=self.user)
+        res1 = self.client.get("/api/projects/options/")
+        self.assertEqual(res1.status_code, status.HTTP_404_NOT_FOUND)
+        res2 = self.client.get("/api/projects/meta/")
+        self.assertEqual(res2.status_code, status.HTTP_404_NOT_FOUND)
+        res3 = self.client.get("/api/clients/")
+        self.assertEqual(res3.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_project_success(self):
+        self.client.force_authenticate(user=self.user)
+        payload = {
+            "client": self.client_obj.id,
+            "project_name": "Portal Redesign & ERP System",
+            "category": "Custom Software / ERP / CRM",
+            "value": 150000.50,
+            "start_date": "2026-11-13",
+            "deadline": "2026-12-31",
+            "project_manager": self.user.id,
+            "team_members": [self.user.id, self.team_user.id],
+            "scope": "Comprehensive ERP platform development with client management."
+        }
+        res = self.client.post(self.projects_url, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(res.data["success"])
+        proj = res.data["data"]
+        self.assertEqual(proj["project_name"], "Portal Redesign & ERP System")
+        self.assertEqual(proj["client"], self.client_obj.id)
+        self.assertEqual(proj["display_client_name"], "Test Enterprise Client")
+        self.assertEqual(proj["value_formatted"], "₹150,000.50")
+        self.assertEqual(len(proj["team_members"]), 2)
+        self.assertEqual(proj["project_manager"], self.user.id)
+        self.assertTrue(proj["project_id"].startswith("PROJ-"))
+
+    def test_create_project_validation_errors(self):
+        self.client.force_authenticate(user=self.user)
+        # Missing client, project_name, deadline
+        res = self.client.post(self.projects_url, {}, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(res.data["success"])
+        self.assertIn("project_name", res.data["errors"])
+        self.assertIn("deadline", res.data["errors"])
+        self.assertIn("client", res.data["errors"])
+
+    def test_list_projects_search_and_filter(self):
+        from erp.models import Project
+        Project.objects.create(
+            client=self.client_obj,
+            project_name="Fintech Mobile Application",
+            category="Mobile App Development",
+            value=200000,
+            deadline="2026-12-25",
+            project_manager=self.user,
+            status="In Progress",
+            created_by=self.user
+        )
+        Project.objects.create(
+            client=self.client_obj,
+            project_name="Corporate Website Refresh",
+            category="Website Design & Development",
+            value=50000,
+            deadline="2026-11-30",
+            project_manager=self.user,
+            status="Completed",
+            created_by=self.user
+        )
+
+        self.client.force_authenticate(user=self.user)
+
+        # 1. List all
+        res = self.client.get(self.projects_url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["total"], 2)
+
+        # 2. Search by keyword
+        res = self.client.get(f"{self.projects_url}?search=Fintech")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["total"], 1)
+        self.assertEqual(res.data["data"][0]["project_name"], "Fintech Mobile Application")
+
+        # 3. Filter by category
+        res = self.client.get(self.projects_url, {"category": "Website Design & Development"})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["total"], 1)
+
+        # 4. Filter by status
+        res = self.client.get(f"{self.projects_url}?status=Completed")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["total"], 1)
+
+    def test_retrieve_update_delete_project(self):
+        from erp.models import Project
+        proj = Project.objects.create(
+            client=self.client_obj,
+            project_name="Brand Identity & UI Kit",
+            category="Graphic Designing",
+            value=45000,
+            deadline="2026-11-28",
+            project_manager=self.user,
+            status="In Progress",
+            created_by=self.user
+        )
+
+        self.client.force_authenticate(user=self.user)
+
+        # Retrieve
+        res = self.client.get(f"/api/projects/{proj.id}/")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["data"]["project_name"], "Brand Identity & UI Kit")
+
+        # Update
+        update_payload = {"value": 60000, "status": "Completed"}
+        res = self.client.patch(f"/api/projects/{proj.id}/update/", update_payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["data"]["value_formatted"], "₹60,000.00")
+        self.assertEqual(res.data["data"]["status"], "Completed")
+
+        # Delete
+        res = self.client.delete(f"/api/projects/{proj.id}/delete/")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertFalse(Project.objects.filter(pk=proj.id).exists())
+
+
+

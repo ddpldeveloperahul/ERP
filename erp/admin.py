@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from erp.models import User, EmailOTP, Lead, ScheduleCallback, EmailCampaign
+from erp.models import User, EmailOTP, Lead, ScheduleCallback, EmailCampaign, Client, Project
 
 
 @admin.register(User)
@@ -10,6 +10,8 @@ class CustomUserAdmin(UserAdmin):
         "first_name",
         "last_name",
         "role",
+        "designation",
+        "department",
         "is_active",
         "is_email_verified",
         "is_staff",
@@ -17,6 +19,7 @@ class CustomUserAdmin(UserAdmin):
 
     list_filter = (
         "role",
+        "department",
         "is_active",
         "is_email_verified",
         "is_staff",
@@ -27,7 +30,7 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("Personal Info", {
-            "fields": ("first_name", "last_name")
+            "fields": ("first_name", "last_name", "designation", "department")
         }),
         ("ERP Role & Verification", {
             "fields": ("role", "is_email_verified")
@@ -194,3 +197,57 @@ class EmailCampaignAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     )
+
+
+@admin.register(Client)
+class ClientAdmin(admin.ModelAdmin):
+    list_display = (
+        "client_name",
+        "company_name",
+        "email",
+        "phone",
+        "client_is",
+        "created_by",
+        "created_at",
+    )
+    list_filter = (
+        "client_is",
+        "created_at",
+    )
+    search_fields = (
+        "client_name",
+        "company_name",
+        "email",
+        "phone",
+    )
+
+
+@admin.register(Project)
+class ProjectAdmin(admin.ModelAdmin):
+    list_display = (
+        "project_id",
+        "project_name",
+        "display_client_name",
+        "category",
+        "value",
+        "start_date",
+        "deadline",
+        "project_manager",
+        "status",
+        "created_at",
+    )
+    list_filter = (
+        "status",
+        "category",
+        "deadline",
+        "created_at",
+    )
+    search_fields = (
+        "project_name",
+        "client_name",
+        "client__client_name",
+        "category",
+        "scope",
+    )
+    filter_horizontal = ("team_members",)
+
