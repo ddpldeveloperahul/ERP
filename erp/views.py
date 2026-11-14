@@ -82,10 +82,17 @@ def inside_sales_dashboard_view(request, active_tab="dashboard"):
 
     open_leads = all_leads.filter(status__iexact="Open")
     open_leads_count = open_leads.count()
+    total_leads_count = all_leads.count()
+    in_progress_leads_count = all_leads.filter(status__iexact="In Progress").count()
+    converted_leads_count = all_leads.filter(status__iexact="Converted").count()
+    lost_leads_count = all_leads.filter(Q(status__iexact="Lost") | Q(status__iexact="Closed")).count()
 
     leads_to_work = open_leads.order_by("-created_at")[:10]
     urgent_callbacks = all_callbacks.filter(status="Pending").order_by("date_time")[:10]
     callbacks_count = urgent_callbacks.count()
+    total_callbacks_count = all_callbacks.count()
+    pending_callbacks_count = all_callbacks.filter(status__iexact="Pending").count()
+    completed_callbacks_count = all_callbacks.filter(status__iexact="Completed").count()
 
     clients = Client.objects.all().order_by("client_name")
     categories = [c[0] for c in Lead.PROJECT_CATEGORY_CHOICES]
@@ -114,16 +121,24 @@ def inside_sales_dashboard_view(request, active_tab="dashboard"):
         "active_tab": tab,
         # Inside Sales specific metrics
         "company_collections_this_month": 0,
-        "open_leads_count": open_leads_count if open_leads_count > 0 else 18,
+        "total_leads_count": total_leads_count,
+        "open_leads_count": open_leads_count,
+        "in_progress_leads_count": in_progress_leads_count,
+        "converted_leads_count": converted_leads_count,
+        "lost_leads_count": lost_leads_count,
         "projects_in_progress_count": proj_in_progress if proj_in_progress > 0 else Project.objects.filter(status="In Progress").count(),
         "pending_payment_requests_count": 1,
+        "total_callbacks_count": total_callbacks_count,
         "callbacks_count": callbacks_count,
+        "pending_callbacks_count": pending_callbacks_count,
+        "completed_callbacks_count": completed_callbacks_count,
         "urgent_callbacks": urgent_callbacks,
         "leads_to_work": leads_to_work,
         "clients": clients,
         "categories": categories,
         "project_managers": active_users,
         "team_members": active_users,
+        "employees": active_users,
         "proj_total": proj_total,
         "proj_overdue": proj_overdue,
         "proj_not_started": proj_not_started,
@@ -586,14 +601,17 @@ class LeadCreateAPIView(APIView):
         - Ordering (?ordering=)
         - Pagination (?page= & ?page_size=)
         """
-        if getattr(request.user, "role", "") == "ADMIN" or request.user.is_superuser:
+        if getattr(request.user, "role", "") in ["ADMIN", "INSIDE_SALES"] or request.user.is_superuser:
             leads = Lead.objects.all()
         else:
             leads = Lead.objects.filter(created_by=request.user)
 
-        generated_by_param = request.query_params.get("generated_by")
-        if generated_by_param and generated_by_param.lower() in ["me", "my"]:
-            leads = leads.filter(created_by=request.user)
+        employee_param = request.query_params.get("employee") or request.query_params.get("generated_by")
+        if employee_param:
+            if employee_param.lower() in ["me", "my"]:
+                leads = leads.filter(created_by=request.user)
+            elif employee_param.isdigit():
+                leads = leads.filter(created_by_id=int(employee_param))
 
         # 1. Multi-Field Elastic Search (?search= or ?q=)
         search_query = request.query_params.get("search") or request.query_params.get("q")
@@ -756,7 +774,7 @@ class LeadDetailAPIView(APIView):
 
     def get_object(self, pk, user):
         try:
-            if getattr(user, "role", "") == "ADMIN" or user.is_superuser:
+            if getattr(user, "role", "") in ["ADMIN", "INSIDE_SALES"] or user.is_superuser:
                 return Lead.objects.get(pk=pk)
             return Lead.objects.get(pk=pk, created_by=user)
         except Lead.DoesNotExist:
@@ -851,7 +869,7 @@ class ScheduleCallbackListCreateAPIView(APIView):
         - Ordering (?ordering=)
         """
         user = request.user
-        if getattr(user, "role", "") == "ADMIN" or user.is_superuser:
+        if getattr(user, "role", "") in ["ADMIN", "INSIDE_SALES"] or user.is_superuser:
             callbacks = ScheduleCallback.objects.all()
         else:
             callbacks = ScheduleCallback.objects.filter(
@@ -994,7 +1012,7 @@ class ScheduleCallbackDetailAPIView(APIView):
 
     def get_object(self, pk, user):
         try:
-            if getattr(user, "role", "") == "ADMIN" or user.is_superuser:
+            if getattr(user, "role", "") in ["ADMIN", "INSIDE_SALES"] or user.is_superuser:
                 return ScheduleCallback.objects.get(pk=pk)
             return ScheduleCallback.objects.get(
                 Q(pk=pk) & (Q(created_by=user) | Q(lead__created_by=user) | Q(type="Public"))
